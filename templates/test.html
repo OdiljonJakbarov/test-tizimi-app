@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Test — {{ fio }}</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Segoe UI', Arial, sans-serif; background: #f0f4ff; min-height: 100vh; }
+.header { background: linear-gradient(135deg, #1a3a6b, #2563b0); color: white; padding: 14px 24px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
+.header-info { font-size: 14px; }
+.header-info .name { font-weight: 700; font-size: 16px; }
+.timer { background: rgba(255,255,255,0.2); border-radius: 8px; padding: 8px 16px; font-size: 22px; font-weight: 700; min-width: 90px; text-align: center; }
+.timer.warning { background: #e74c3c; animation: pulse 1s infinite; }
+@keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.7; } }
+.progress-bar { background: #e0e0e0; height: 8px; }
+.progress-fill { background: linear-gradient(90deg, #1a3a6b, #2563b0); height: 100%; transition: width 0.3s; }
+.main { max-width: 720px; margin: 30px auto; padding: 0 16px; }
+.question-card { background: white; border-radius: 14px; padding: 32px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); margin-bottom: 20px; }
+.q-num { font-size: 13px; color: #888; margin-bottom: 10px; }
+.q-text { font-size: 18px; font-weight: 600; color: #1a3a6b; line-height: 1.5; margin-bottom: 24px; }
+.options { display: flex; flex-direction: column; gap: 12px; }
+.option { display: flex; align-items: center; gap: 12px; padding: 14px 18px; border: 2px solid #e0e0e0; border-radius: 10px; cursor: pointer; transition: all 0.2s; font-size: 15px; }
+.option:hover:not(.disabled) { border-color: #2563b0; background: #f0f4ff; }
+.option.selected { border-color: #2563b0; background: #e8f0fe; }
+.option.correct { border-color: #27ae60; background: #eafaf1; color: #27ae60; font-weight: 600; }
+.option.wrong { border-color: #e74c3c; background: #fdf2f2; color: #e74c3c; }
+.option.disabled { cursor: default; }
+.opt-letter { width: 32px; height: 32px; border-radius: 50%; background: #e0e0e0; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 13px; flex-shrink: 0; }
+.option.selected .opt-letter { background: #2563b0; color: white; }
+.option.correct .opt-letter { background: #27ae60; color: white; }
+.option.wrong .opt-letter { background: #e74c3c; color: white; }
+.nav-btns { display: flex; gap: 12px; justify-content: space-between; margin-top: 24px; }
+.btn { padding: 12px 28px; border: none; border-radius: 8px; font-size: 15px; font-weight: 600; cursor: pointer; transition: opacity 0.2s; }
+.btn-next { background: linear-gradient(135deg, #1a3a6b, #2563b0); color: white; }
+.btn-next:disabled { opacity: 0.5; cursor: not-allowed; }
+.btn-finish { background: linear-gradient(135deg, #27ae60, #2ecc71); color: white; }
+.feedback { padding: 12px 18px; border-radius: 8px; font-size: 14px; font-weight: 600; margin-top: 16px; display: none; }
+.feedback.correct { background: #eafaf1; color: #27ae60; border: 1px solid #a9dfbf; }
+.feedback.wrong { background: #fdf2f2; color: #e74c3c; border: 1px solid #f5b7b1; }
+
+/* Result screen */
+.result-card { background: white; border-radius: 14px; padding: 40px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); text-align: center; display: none; }
+.result-icon { font-size: 60px; margin-bottom: 16px; }
+.result-pct { font-size: 56px; font-weight: 800; margin: 10px 0; }
+.result-pct.excellent { color: #27ae60; }
+.result-pct.good { color: #f39c12; }
+.result-pct.poor { color: #e74c3c; }
+.result-grade { font-size: 20px; font-weight: 700; margin-bottom: 20px; }
+.result-stats { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; margin: 24px 0; }
+.stat-box { background: #f8f9fa; border-radius: 10px; padding: 16px; }
+.stat-box .num { font-size: 28px; font-weight: 800; }
+.stat-box .lbl { font-size: 12px; color: #888; margin-top: 4px; }
+.stat-box.correct .num { color: #27ae60; }
+.stat-box.wrong .num { color: #e74c3c; }
+.stat-box.total .num { color: #2563b0; }
+.result-info { color: #666; font-size: 14px; margin-bottom: 24px; }
+.btn-home { display: inline-block; padding: 13px 36px; background: linear-gradient(135deg, #1a3a6b, #2563b0); color: white; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 15px; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-info">
+    <div class="name">👤 {{ fio }}</div>
+    <div>Guruh: {{ group }} | Kategoriya: {{ category }}</div>
+  </div>
+  <div class="timer" id="timer">--:--</div>
+</div>
+<div class="progress-bar">
+  <div class="progress-fill" id="progress" style="width:0%"></div>
+</div>
+
+<div class="main">
+  <div class="question-card" id="q-card">
+    <div class="q-num" id="q-num">Savol 1 / {{ total }}</div>
+    <div class="q-text" id="q-text">Yuklanmoqda...</div>
+    <div class="options" id="options"></div>
+    <div class="feedback" id="feedback"></div>
+    <div class="nav-btns">
+      <div></div>
+      <button class="btn btn-next" id="btn-next" onclick="nextQuestion()" disabled>Keyingisi ›</button>
+    </div>
+  </div>
+
+  <div class="result-card" id="result-card">
+    <div class="result-icon" id="r-icon">🎉</div>
+    <div style="font-size:20px; color:#888; margin-bottom:4px;">Natija</div>
+    <div class="result-pct" id="r-pct">0%</div>
+    <div class="result-grade" id="r-grade"></div>
+    <div class="result-stats">
+      <div class="stat-box total"><div class="num" id="r-total">0</div><div class="lbl">Jami savollar</div></div>
+      <div class="stat-box correct"><div class="num" id="r-correct">0</div><div class="lbl">To'g'ri javob</div></div>
+      <div class="stat-box wrong"><div class="num" id="r-wrong">0</div><div class="lbl">Xato javob</div></div>
+    </div>
+    <div class="result-info" id="r-info"></div>
+    <a href="/" class="btn-home">🏠 Bosh sahifaga qaytish</a>
+  </div>
+</div>
+
+<script>
+let currentIdx = 0;
+let totalQ = {{ total }};
+let timeLeft = {{ time_limit }};
+let answered = false;
+let timerInterval;
+let finished = false;
+const LETTERS = ['A','B','C','D','E'];
+
+function startTimer() {
+  timerInterval = setInterval(() => {
+    timeLeft--;
+    updateTimerDisplay();
+    if (timeLeft <= 0) {
+      clearInterval(timerInterval);
+      finishTest();
+    }
+  }, 1000);
+}
+
+function updateTimerDisplay() {
+  const m = Math.floor(timeLeft / 60);
+  const s = timeLeft % 60;
+  const el = document.getElementById('timer');
+  el.textContent = `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+  el.className = 'timer' + (timeLeft < 60 ? ' warning' : '');
+}
+
+async function loadQuestion(idx) {
+  answered = false;
+  document.getElementById('btn-next').disabled = true;
+  document.getElementById('feedback').style.display = 'none';
+  document.getElementById('q-text').textContent = 'Yuklanmoqda...';
+  document.getElementById('options').innerHTML = '';
+  
+  const res = await fetch(`/get_question/${idx}`);
+  const data = await res.json();
+  
+  if (data.timeout) { finishTest(); return; }
+  if (data.done) { finishTest(); return; }
+  
+  document.getElementById('q-num').textContent = `Savol ${idx+1} / ${totalQ}`;
+  document.getElementById('q-text').textContent = data.question;
+  document.getElementById('progress').style.width = `${((idx) / totalQ) * 100}%`;
+  
+  const opts = document.getElementById('options');
+  data.options.forEach((opt, i) => {
+    const div = document.createElement('div');
+    div.className = 'option';
+    div.innerHTML = `<div class="opt-letter">${LETTERS[i]}</div><div>${opt}</div>`;
+    div.onclick = () => selectAnswer(opt, div, data.options, idx);
+    opts.appendChild(div);
+  });
+  
+  // Update next button text
+  const btnNext = document.getElementById('btn-next');
+  if (idx >= totalQ - 1) {
+    btnNext.textContent = 'Yakunlash ✓';
+    btnNext.className = 'btn btn-finish';
+  } else {
+    btnNext.textContent = 'Keyingisi ›';
+    btnNext.className = 'btn btn-next';
+  }
+}
+
+async function selectAnswer(answer, el, allOptions, idx) {
+  if (answered) return;
+  answered = true;
+  
+  const res = await fetch('/submit_answer', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({index: idx, answer})
+  });
+  const data = await res.json();
+  
+  const allOpts = document.querySelectorAll('.option');
+  allOpts.forEach(o => {
+    o.classList.add('disabled');
+    const text = o.querySelectorAll('div')[1].textContent;
+    if (text === data.correct_answer) o.classList.add('correct');
+  });
+  
+  if (!data.correct) {
+    el.classList.add('wrong');
+    const fb = document.getElementById('feedback');
+    fb.className = 'feedback wrong';
+    fb.textContent = `❌ Noto'g'ri! To'g'ri javob: "${data.correct_answer}"`;
+    fb.style.display = 'block';
+  } else {
+    el.classList.add('selected');
+    const fb = document.getElementById('feedback');
+    fb.className = 'feedback correct';
+    fb.textContent = '✅ To\'g\'ri javob!';
+    fb.style.display = 'block';
+  }
+  
+  document.getElementById('btn-next').disabled = false;
+}
+
+function nextQuestion() {
+  if (!answered && currentIdx < totalQ) {
+    if (!confirm('Bu savolni javobsiz o\'tkazmoqchimisiz?')) return;
+  }
+  currentIdx++;
+  if (currentIdx >= totalQ) { finishTest(); return; }
+  loadQuestion(currentIdx);
+}
+
+async function finishTest() {
+  if (finished) return;
+  finished = true;
+  clearInterval(timerInterval);
+  
+  const res = await fetch('/finish_test', { method: 'POST', headers: {'Content-Type': 'application/json'} });
+  const data = await res.json();
+  
+  document.getElementById('q-card').style.display = 'none';
+  document.getElementById('progress').style.width = '100%';
+  
+  const rc = document.getElementById('result-card');
+  rc.style.display = 'block';
+  
+  const pct = data.percentage;
+  const pctEl = document.getElementById('r-pct');
+  pctEl.textContent = pct + '%';
+  
+  let grade, icon;
+  if (pct >= 85) { grade = "A'lo (Excellent)"; icon = "🏆"; pctEl.className = 'result-pct excellent'; }
+  else if (pct >= 70) { grade = "Yaxshi (Good)"; icon = "🌟"; pctEl.className = 'result-pct good'; }
+  else if (pct >= 55) { grade = "Qoniqarli (Satisfactory)"; icon = "👍"; pctEl.className = 'result-pct good'; }
+  else { grade = "Qoniqarsiz (Unsatisfactory)"; icon = "📚"; pctEl.className = 'result-pct poor'; }
+  
+  document.getElementById('r-icon').textContent = icon;
+  document.getElementById('r-grade').textContent = grade;
+  document.getElementById('r-total').textContent = data.total;
+  document.getElementById('r-correct').textContent = data.correct;
+  document.getElementById('r-wrong').textContent = data.wrong;
+  document.getElementById('r-info').textContent = `👤 ${data.fio} | Guruh: ${data.group} | 📂 ${data.category} | 📅 ${data.date}`;
+}
+
+// Init
+updateTimerDisplay();
+startTimer();
+loadQuestion(0);
+</script>
+</body>
+</html>

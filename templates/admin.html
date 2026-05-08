@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Administrator Paneli</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Segoe UI', Arial, sans-serif; background: #f0f2f5; min-height: 100vh; }
+.header { background: linear-gradient(135deg, #1a3a6b, #2563b0); color: white; padding: 16px 28px; display: flex; justify-content: space-between; align-items: center; }
+.header h1 { font-size: 20px; }
+.header a { color: rgba(255,255,255,0.85); text-decoration: none; font-size: 14px; background: rgba(255,255,255,0.15); padding: 7px 14px; border-radius: 6px; }
+.main { max-width: 1100px; margin: 28px auto; padding: 0 16px; }
+.tabs { display: flex; gap: 8px; margin-bottom: 24px; flex-wrap: wrap; }
+.tab { padding: 10px 22px; border-radius: 8px; border: none; cursor: pointer; font-size: 14px; font-weight: 600; background: white; color: #666; transition: all 0.2s; box-shadow: 0 2px 6px rgba(0,0,0,0.08); }
+.tab.active { background: linear-gradient(135deg, #1a3a6b, #2563b0); color: white; }
+.panel { display: none; }
+.panel.active { display: block; }
+.card { background: white; border-radius: 12px; padding: 28px; box-shadow: 0 2px 12px rgba(0,0,0,0.08); margin-bottom: 20px; }
+.card h2 { font-size: 17px; color: #1a3a6b; margin-bottom: 20px; padding-bottom: 12px; border-bottom: 2px solid #f0f4ff; }
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.form-group { margin-bottom: 16px; }
+label { display: block; font-size: 13px; font-weight: 600; color: #444; margin-bottom: 6px; }
+input, select { width: 100%; padding: 10px 14px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 14px; outline: none; transition: border-color 0.2s; }
+input:focus, select:focus { border-color: #2563b0; }
+.btn { padding: 10px 22px; border: none; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; transition: opacity 0.2s; }
+.btn-primary { background: linear-gradient(135deg, #1a3a6b, #2563b0); color: white; }
+.btn-danger { background: #e74c3c; color: white; }
+.btn-success { background: #27ae60; color: white; }
+.btn:hover { opacity: 0.88; }
+.alert { padding: 12px 16px; border-radius: 8px; margin-top: 12px; font-size: 14px; display: none; }
+.alert-success { background: #eafaf1; color: #27ae60; border: 1px solid #a9dfbf; }
+.alert-error { background: #fdf2f2; color: #e74c3c; border: 1px solid #f5b7b1; }
+.file-list { }
+.file-item { display: flex; justify-content: space-between; align-items: center; padding: 14px 18px; border: 2px solid #e8ecf0; border-radius: 10px; margin-bottom: 10px; }
+.file-item .name { font-weight: 600; color: #1a3a6b; }
+.file-item .meta { font-size: 12px; color: #888; margin-top: 3px; }
+table { width: 100%; border-collapse: collapse; font-size: 14px; }
+th { background: #1a3a6b; color: white; padding: 12px 14px; text-align: left; }
+td { padding: 10px 14px; border-bottom: 1px solid #eee; }
+tr:hover td { background: #f8f9ff; }
+.pct-good { color: #27ae60; font-weight: 700; }
+.pct-mid { color: #f39c12; font-weight: 700; }
+.pct-low { color: #e74c3c; font-weight: 700; }
+.export-section { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; margin-bottom: 20px; }
+.badge { display: inline-block; background: #e8f0fe; color: #2563b0; font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 10px; }
+.hint { font-size: 12px; color: #999; margin-top: 6px; }
+</style>
+</head>
+<body>
+<div class="header">
+  <h1>⚙️ Administrator Paneli</h1>
+  <a href="/">← Bosh sahifa</a>
+</div>
+
+<div class="main">
+  <div class="tabs">
+    <button class="tab active" onclick="showTab('settings')">⚙️ Sozlamalar</button>
+    <button class="tab" onclick="showTab('tests')">📁 Test Fayllari</button>
+    <button class="tab" onclick="showTab('results')">📊 Natijalar</button>
+  </div>
+
+  <!-- SETTINGS PANEL -->
+  <div id="tab-settings" class="panel active">
+    <div class="card">
+      <h2>🔧 Test Sozlamalari</h2>
+      <div class="form-group">
+        <label>Administrator paroli (kirish uchun)</label>
+        <input type="password" id="admin-pass" placeholder="Parolingizni kiriting..." />
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>⏱ Vaqt limiti (daqiqada)</label>
+          <input type="number" id="time_limit" value="{{ config.time_limit }}" min="1" max="300" />
+          <div class="hint">Har bir test uchun ajratiladigan maksimal vaqt</div>
+        </div>
+        <div class="form-group">
+          <label>📋 Savollar soni (ta)</label>
+          <input type="number" id="question_count" value="{{ config.question_count }}" min="1" max="200" />
+          <div class="hint">Foydalanuvchiga beriladigan savollar soni</div>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>🔑 Yangi parol (o'zgartirish uchun)</label>
+        <input type="password" id="new_password" placeholder="Ixtiyoriy — bo'sh qoldiring" />
+      </div>
+      <button class="btn btn-primary" onclick="saveConfig()">💾 Saqlash</button>
+      <div class="alert alert-success" id="cfg-ok">✅ Sozlamalar saqlandi!</div>
+      <div class="alert alert-error" id="cfg-err">❌ Xatolik: Parol noto'g'ri!</div>
+    </div>
+  </div>
+
+  <!-- TESTS PANEL -->
+  <div id="tab-tests" class="panel">
+    <div class="card">
+      <h2>📤 Yangi Test Fayl Yuklash</h2>
+      <p style="font-size:13px;color:#666;margin-bottom:16px;">
+        XLSX fayl tuzilishi: <strong>1-ustun</strong> savol | <strong>2-ustun</strong> to'g'ri javob | <strong>3,4,5-ustunlar</strong> noto'g'ri javoblar
+      </p>
+      <div class="form-group">
+        <label>Administrator paroli</label>
+        <input type="password" id="up-pass" placeholder="Parolingizni kiriting..." />
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Test nomi (masalan: 1-ON, 2-ON, YaN)</label>
+          <input type="text" id="test-name" placeholder="Masalan: 1-ON_Informatika" />
+        </div>
+        <div class="form-group">
+          <label>XLSX fayl</label>
+          <input type="file" id="test-file" accept=".xlsx" />
+        </div>
+      </div>
+      <button class="btn btn-success" onclick="uploadTest()">📤 Yuklash</button>
+      <div class="alert alert-success" id="up-ok">✅ Fayl muvaffaqiyatli yuklandi!</div>
+      <div class="alert alert-error" id="up-err">❌ Xatolik!</div>
+    </div>
+
+    <div class="card">
+      <h2>📂 Yuklangan Test Fayllar</h2>
+      <div class="file-list" id="file-list">
+        {% for cat in categories %}
+        <div class="file-item" id="fi-{{ loop.index }}">
+          <div>
+            <div class="name">📄 {{ cat }}</div>
+            <div class="meta">tests/{{ cat }}.xlsx</div>
+          </div>
+          <button class="btn btn-danger" onclick="deleteTest('{{ cat }}')">🗑 O'chirish</button>
+        </div>
+        {% else %}
+        <p style="color:#999;text-align:center;padding:20px;">Hozircha test fayllari yo'q</p>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+
+  <!-- RESULTS PANEL -->
+  <div id="tab-results" class="panel">
+    <div class="card">
+      <h2>📊 Natijalar va Export</h2>
+      <div class="export-section">
+        <div class="form-group" style="margin:0; min-width:200px;">
+          <label>Kategoriya filtri</label>
+          <select id="exp-cat">
+            <option value="all">Barcha natijalar</option>
+            {% for cat in categories %}
+            <option value="{{ cat }}">{{ cat }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="form-group" style="margin:0;">
+          <label>Administrator paroli</label>
+          <input type="password" id="exp-pass" placeholder="Parol..." style="width:180px;" />
+        </div>
+        <div style="padding-top:20px;">
+          <button class="btn btn-success" onclick="exportResults()">📥 XLSX Eksport</button>
+        </div>
+      </div>
+      <div class="alert alert-error" id="exp-err">❌ Xatolik!</div>
+
+      {% if results %}
+      <table>
+        <thead>
+          <tr>
+            <th>#</th><th>F.I.O.</th><th>Guruh</th><th>Kategoriya</th><th>Jami</th><th>To'g'ri</th><th>Xato</th><th>Foiz</th><th>Sana</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for r in results | sort(attribute='date', reverse=True) %}
+          <tr>
+            <td>{{ loop.index }}</td>
+            <td><strong>{{ r.fio }}</strong></td>
+            <td>{{ r.group }}</td>
+            <td><span class="badge">{{ r.category }}</span></td>
+            <td>{{ r.total }}</td>
+            <td style="color:#27ae60;font-weight:700;">{{ r.correct }}</td>
+            <td style="color:#e74c3c;">{{ r.wrong }}</td>
+            <td class="{{ 'pct-good' if r.percentage >= 85 else ('pct-mid' if r.percentage >= 55 else 'pct-low') }}">{{ r.percentage }}%</td>
+            <td>{{ r.date }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      {% else %}
+      <p style="color:#999;text-align:center;padding:30px;">Hozircha natijalar yo'q</p>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+<script>
+function showTab(name) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('tab-' + name).classList.add('active');
+  event.target.classList.add('active');
+}
+
+function showAlert(id, duration=3000) {
+  const el = document.getElementById(id);
+  el.style.display = 'block';
+  setTimeout(() => el.style.display = 'none', duration);
+}
+
+async function saveConfig() {
+  const data = {
+    password: document.getElementById('admin-pass').value,
+    time_limit: document.getElementById('time_limit').value,
+    question_count: document.getElementById('question_count').value,
+    new_password: document.getElementById('new_password').value
+  };
+  const res = await fetch('/admin/save_config', {
+    method: 'POST', headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify(data)
+  });
+  const r = await res.json();
+  showAlert(r.error ? 'cfg-err' : 'cfg-ok');
+}
+
+async function uploadTest() {
+  const name = document.getElementById('test-name').value.trim();
+  const file = document.getElementById('test-file').files[0];
+  const pass = document.getElementById('up-pass').value;
+  
+  if (!name || !file) { 
+    document.getElementById('up-err').textContent = '❌ Test nomi va faylni kiriting!';
+    showAlert('up-err'); return; 
+  }
+  
+  const fd = new FormData();
+  fd.append('name', name);
+  fd.append('file', file);
+  fd.append('password', pass);
+  
+  const res = await fetch('/admin/upload_test', { method: 'POST', body: fd });
+  const r = await res.json();
+  if (r.error) {
+    document.getElementById('up-err').textContent = '❌ ' + r.error;
+    showAlert('up-err');
+  } else {
+    document.getElementById('up-ok').textContent = '✅ ' + r.message;
+    showAlert('up-ok');
+    setTimeout(() => location.reload(), 1500);
+  }
+}
+
+async function deleteTest(name) {
+  const pass = prompt('O\'chirish uchun administrator parolini kiriting:');
+  if (!pass) return;
+  if (!confirm(`"${name}" faylini o'chirishni tasdiqlaysizmi?`)) return;
+  
+  const res = await fetch('/admin/delete_test', {
+    method: 'POST', headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({name, password: pass})
+  });
+  const r = await res.json();
+  if (r.error) { alert('❌ ' + r.error); }
+  else { location.reload(); }
+}
+
+async function exportResults() {
+  const cat = document.getElementById('exp-cat').value;
+  const pass = document.getElementById('exp-pass').value;
+  
+  const res = await fetch('/export_results', {
+    method: 'POST', headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({category: cat, password: pass})
+  });
+  
+  if (!res.ok) {
+    const r = await res.json();
+    document.getElementById('exp-err').textContent = '❌ ' + r.error;
+    showAlert('exp-err'); return;
+  }
+  
+  const blob = await res.blob();
+  const url = window.URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = 'natijalar.xlsx'; a.click();
+}
+</script>
+</body>
+</html>
