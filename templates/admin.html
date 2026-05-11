@@ -58,6 +58,7 @@ tr:hover td { background: #f8f9ff; }
     <button class="tab active" onclick="showTab('settings')">⚙️ Sozlamalar</button>
     <button class="tab" onclick="showTab('tests')">📁 Test Fayllari</button>
     <button class="tab" onclick="showTab('results')">📊 Natijalar</button>
+    <button class="tab" onclick="showTab('teachers')">👨‍🏫 O'qituvchilar</button>
   </div>
 
   <!-- SETTINGS PANEL -->
@@ -186,6 +187,52 @@ tr:hover td { background: #f8f9ff; }
       {% endif %}
     </div>
   </div>
+
+  <!-- TEACHERS PANEL -->
+  <div id="tab-teachers" class="panel">
+    <div class="card">
+      <h2>👨‍🏫 Ro'yxatdan O'tgan O'qituvchilar</h2>
+      {% if teachers %}
+      <table>
+        <thead>
+          <tr><th>#</th><th>Ism</th><th>Login</th><th>Email</th><th>Ro'yxatdan</th><th>Holat</th><th>Amallar</th></tr>
+        </thead>
+        <tbody>
+          {% for t in teachers %}
+          <tr>
+            <td>{{ loop.index }}</td>
+            <td><strong>{{ t.name }}</strong></td>
+            <td><code>{{ t.username }}</code></td>
+            <td>{{ t.email or '—' }}</td>
+            <td>{{ t.created_at }}</td>
+            <td>
+              {% if t.is_active %}
+              <span style="color:#27ae60;font-weight:700;">● Faol</span>
+              {% else %}
+              <span style="color:#e74c3c;font-weight:700;">● Bloklangan</span>
+              {% endif %}
+            </td>
+            <td style="display:flex;gap:6px;">
+              <button class="btn" style="padding:5px 12px;font-size:12px;background:{% if t.is_active %}#f39c12{% else %}#27ae60{% endif %};color:white;"
+                onclick="toggleTeacher('{{ t.id }}', {{ 0 if t.is_active else 1 }})">
+                {% if t.is_active %}🔒 Bloklash{% else %}✅ Faollashtirish{% endif %}
+              </button>
+              <button class="btn btn-danger" style="padding:5px 12px;font-size:12px;"
+                onclick="deleteTeacher('{{ t.id }}', '{{ t.name }}')">🗑</button>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      {% else %}
+      <p style="color:#999;text-align:center;padding:30px;">Hozircha o'qituvchilar ro'yxatdan o'tmagan</p>
+      {% endif %}
+      <div style="margin-top:16px;font-size:13px;color:#666;">
+        O'qituvchi kabineti: <a href="/teacher/login" target="_blank" style="color:#2563b0;">/teacher/login</a>
+      </div>
+    </div>
+  </div>
+
 </div>
 
 <script>
@@ -262,7 +309,7 @@ async function exportResults() {
   const cat = document.getElementById('exp-cat').value;
   const pass = document.getElementById('exp-pass').value;
   
-  const res = await fetch('/export_results', {
+  const res = await fetch('/admin/export_results', {
     method: 'POST', headers: {'Content-Type': 'application/json'},
     body: JSON.stringify({category: cat, password: pass})
   });
@@ -277,6 +324,28 @@ async function exportResults() {
   const url = window.URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url; a.download = 'natijalar.xlsx'; a.click();
+}
+
+async function toggleTeacher(id, active) {
+  const pass = prompt('Administrator parolini kiriting:');
+  if(!pass) return;
+  const res = await fetch('/admin/toggle_teacher', {
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({id, active, password: pass})
+  });
+  const r = await res.json();
+  if(r.error){ alert('❌ '+r.error); } else { location.reload(); }
+}
+async function deleteTeacher(id, name) {
+  const pass = prompt('Administrator parolini kiriting:');
+  if(!pass) return;
+  if(!confirm(`"${name}" o'qituvchisini o'chirishni tasdiqlaysizmi?`)) return;
+  const res = await fetch('/admin/delete_teacher', {
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({id, password: pass})
+  });
+  const r = await res.json();
+  if(r.error){ alert('❌ '+r.error); } else { location.reload(); }
 }
 </script>
 </body>

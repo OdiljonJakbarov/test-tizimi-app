@@ -1,13 +1,15 @@
-from flask import Flask, render_template, request, jsonify, send_file, session
+from flask import Flask, render_template, request, jsonify, send_file, session, redirect, url_for, flash
 import os, json, random, time, sqlite3
 from datetime import datetime
+from functools import wraps
 import pandas as pd
 import openpyxl
 from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
 import uuid
+from werkzeug.security import generate_password_hash, check_password_hash
 
 app = Flask(__name__)
-app.secret_key = os.environ.get('SECRET_KEY', 'test_app_secret_2024_xyz')
+app.secret_key = os.environ.get('SECRET_KEY', 'test_app_secret_2024_xyz_v3')
 app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
 app.config['SESSION_COOKIE_SECURE'] = False
 
@@ -20,42 +22,70 @@ DB_FILE = os.path.join(BASE_DIR, 'results.db')
 DEFAULT_CONFIG = {"time_limit": 30, "question_count": 10, "admin_password": "admin123"}
 
 # ── DATABASE ──────────────────────────────────────────────
+def get_db():
+    con = sqlite3.connect(DB_FILE)
+    con.row_factory = sqlite3.Row
+    return con
+
 def init_db():
     os.makedirs(TESTS_DIR, exist_ok=True)
     os.makedirs(RESULTS_DIR, exist_ok=True)
-    con = sqlite3.connect(DB_FILE)
-    con.execute('''CREATE TABLE IF NOT EXISTS results (
-        id TEXT PRIMARY KEY, fio TEXT, grp TEXT, category TEXT,
-        total INTEGER, correct INTEGER, wrong INTEGER,
-        percentage REAL, date TEXT, answers TEXT)''')
-    # active_tests jadvali — session o'rniga ishlatamiz
-    con.execute('''CREATE TABLE IF NOT EXISTS active_tests (
-        token TEXT PRIMARY KEY,
-        fio TEXT, grp TEXT, category TEXT,
-        questions TEXT,
-        start_time REAL,
-        time_limit INTEGER,
-        answers TEXT,
-        created_at REAL
-    )''')
+    con = get_db()
+    con.executescript('''
+        CREATE TABLE IF NOT EXISTS results (
+            id TEXT PRIMARY KEY, fio TEXT, grp TEXT, category TEXT,
+            total INTEGER, correct INTEGER, wrong INTEGER,
+            percentage REAL, date TEXT, answers TEXT, teacher_id TEXT);
+
+        CREATE TABLE IF NOT EXISTS active_tests (
+            token TEXT PRIMARY KEY, fio TEXT, grp TEXT, category TEXT,
+            questions TEXT, start_time REAL, time_limit INTEGER,
+            answers TEXT, created_at REAL);
+
+        CREATE TABLE IF NOT EXISTS teachers (
+            id TEXT PRIMARY KEY, name TEXT, username TEXT UNIQUE,
+            password_hash TEXT, email TEXT, created_at TEXT, is_active INTEGER DEFAULT 1);
+    ''')
     con.commit(); con.close()
 
-def db_save_result(r):
-    con = sqlite3.connect(DB_FILE)
+# ── TEACHERS (O'qituvchilar) ──────────────────────────────
+def teacher_login_required(f):
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        if 'teacher_id' not in session:
+            return redirect(url_for('teacher_login'))
+        return f(*args, **kwargs)
+    return decorated
+
+def get_current_teacher():
+    tid = session.get('teacher_id')
+    if not tid: return None
+    con = get_db()
+    t = con.execute('SELECT * FROM teachers WHERE id=? AND is_active=1', (tid,)).fetchone()
+    con.close()
+    return dict(t) if t else None
+
+# ── RESULTS ───────────────────────────────────────────────
+def db_save_result(r, teacher_id=None):
+    con = get_db()
     con.execute('''INSERT OR REPLACE INTO results
-        (id,fio,grp,category,total,correct,wrong,percentage,date,answers)
-        VALUES (?,?,?,?,?,?,?,?,?,?)''',
+        (id,fio,grp,category,total,correct,wrong,percentage,date,answers,teacher_id)
+        VALUES (?,?,?,?,?,?,?,?,?,?,?)''',
         (r['id'],r['fio'],r['group'],r['category'],r['total'],r['correct'],
-         r['wrong'],r['percentage'],r['date'],json.dumps(r['answers'],ensure_ascii=False)))
+         r['wrong'],r['percentage'],r['date'],
+         json.dumps(r['answers'],ensure_ascii=False), teacher_id))
     con.commit(); con.close()
 
-def db_load_results(category=None):
-    con = sqlite3.connect(DB_FILE)
-    con.row_factory = sqlite3.Row
+def db_load_results(category=None, teacher_id=None):
+    con = get_db()
+    q = 'SELECT * FROM results WHERE 1=1'
+    params = []
+    if teacher_id:
+        q += ' AND teacher_id=?'; params.append(teacher_id)
     if category and category != 'all':
-        rows = con.execute('SELECT * FROM results WHERE category=? ORDER BY date DESC',(category,)).fetchall()
-    else:
-        rows = con.execute('SELECT * FROM results ORDER BY date DESC').fetchall()
+        q += ' AND category=?'; params.append(category)
+    q += ' ORDER BY date DESC'
+    rows = con.execute(q, params).fetchall()
     con.close()
     out = []
     for row in rows:
@@ -63,39 +93,37 @@ def db_load_results(category=None):
         d['answers'] = json.loads(d['answers']); out.append(d)
     return out
 
+# ── ACTIVE TESTS ──────────────────────────────────────────
 def save_active_test(token, data):
-    con = sqlite3.connect(DB_FILE)
+    con = get_db()
     con.execute('''INSERT OR REPLACE INTO active_tests
         (token,fio,grp,category,questions,start_time,time_limit,answers,created_at)
         VALUES (?,?,?,?,?,?,?,?,?)''',
-        (token, data['fio'], data['group'], data['category'],
-         json.dumps(data['questions'], ensure_ascii=False),
-         data['start_time'], data['time_limit'],
-         json.dumps(data['answers'], ensure_ascii=False),
-         time.time()))
+        (token,data['fio'],data['group'],data['category'],
+         json.dumps(data['questions'],ensure_ascii=False),
+         data['start_time'],data['time_limit'],
+         json.dumps(data['answers'],ensure_ascii=False), time.time()))
     con.commit(); con.close()
 
 def load_active_test(token):
-    con = sqlite3.connect(DB_FILE)
-    con.row_factory = sqlite3.Row
-    row = con.execute('SELECT * FROM active_tests WHERE token=?', (token,)).fetchone()
+    con = get_db()
+    row = con.execute('SELECT * FROM active_tests WHERE token=?',(token,)).fetchone()
     con.close()
     if not row: return None
-    d = dict(row)
-    d['group'] = d.pop('grp')
+    d = dict(row); d['group'] = d.pop('grp')
     d['questions'] = json.loads(d['questions'])
     d['answers'] = json.loads(d['answers'])
     return d
 
 def delete_active_test(token):
-    con = sqlite3.connect(DB_FILE)
-    con.execute('DELETE FROM active_tests WHERE token=?', (token,))
+    con = get_db()
+    con.execute('DELETE FROM active_tests WHERE token=?',(token,))
     con.commit(); con.close()
 
 def update_active_test_answers(token, answers):
-    con = sqlite3.connect(DB_FILE)
+    con = get_db()
     con.execute('UPDATE active_tests SET answers=? WHERE token=?',
-                (json.dumps(answers, ensure_ascii=False), token))
+                (json.dumps(answers,ensure_ascii=False), token))
     con.commit(); con.close()
 
 # ── CONFIG ────────────────────────────────────────────────
@@ -107,13 +135,36 @@ def load_config():
 def save_config(cfg):
     with open(CONFIG_FILE,'w',encoding='utf-8') as f: json.dump(cfg,f,ensure_ascii=False,indent=2)
 
-# ── QUESTIONS ─────────────────────────────────────────────
-def get_test_categories():
+# ── TEST CATEGORIES ───────────────────────────────────────
+def get_teacher_tests_dir(teacher_id=None):
+    if teacher_id:
+        d = os.path.join(TESTS_DIR, f'teacher_{teacher_id}')
+    else:
+        d = os.path.join(TESTS_DIR, 'admin')
+    os.makedirs(d, exist_ok=True)
+    return d
+
+def get_test_categories(teacher_id=None):
     categories = {}
-    os.makedirs(TESTS_DIR, exist_ok=True)
+    # Admin testlari
+    admin_dir = os.path.join(TESTS_DIR, 'admin')
+    if os.path.exists(admin_dir):
+        for fname in sorted(os.listdir(admin_dir)):
+            if fname.endswith('.xlsx'):
+                categories[fname[:-5]] = os.path.join(admin_dir, fname)
+    # Eski tuzilish (root tests/) ham qo'llab-quvvatlaymiz
     for fname in sorted(os.listdir(TESTS_DIR)):
         if fname.endswith('.xlsx'):
-            categories[fname[:-5]] = os.path.join(TESTS_DIR, fname)
+            name = fname[:-5]
+            if name not in categories:
+                categories[name] = os.path.join(TESTS_DIR, fname)
+    # O'qituvchi testlari
+    if teacher_id:
+        t_dir = os.path.join(TESTS_DIR, f'teacher_{teacher_id}')
+        if os.path.exists(t_dir):
+            for fname in sorted(os.listdir(t_dir)):
+                if fname.endswith('.xlsx'):
+                    categories[fname[:-5]] = os.path.join(t_dir, fname)
     return categories
 
 def load_questions(filepath):
@@ -131,10 +182,11 @@ def get_on_categories(categories):
     return on1, on2
 
 def get_test_token():
-    """Cookie yoki query param dan token olish"""
     return request.cookies.get('test_token') or request.args.get('token')
 
-# ── ROUTES ────────────────────────────────────────────────
+# ══════════════════════════════════════════════════════════
+# TALABA ROUTES (ochiq)
+# ══════════════════════════════════════════════════════════
 @app.route('/')
 def index():
     config = load_config()
@@ -153,42 +205,34 @@ def start_test():
     category = data.get('category','')
     if not fio or not group:
         return jsonify({'error': 'FIO va guruh kiritilishi shart!'}), 400
-
     config = load_config()
     categories = get_test_categories()
     questions = []
-
     if category == 'YaN':
         on1, on2 = get_on_categories(categories)
         if not on1 or not on2:
             return jsonify({'error': 'YaN uchun 1-ON va 2-ON fayllari zarur!'}), 400
-        q_count = config.get('question_count', 10); half = q_count // 2
+        q_count = config.get('question_count',10); half = q_count//2
         q1 = load_questions(categories[on1[0]]); q2 = load_questions(categories[on2[0]])
         random.shuffle(q1); random.shuffle(q2)
-        questions = q1[:half] + q2[q_count - half:]
+        questions = q1[:half] + q2[q_count-half:]
     else:
         if category not in categories:
             return jsonify({'error': 'Kategoriya topilmadi!'}), 400
         all_q = load_questions(categories[category])
         random.shuffle(all_q)
-        questions = all_q[:config.get('question_count', 10)]
-
+        questions = all_q[:config.get('question_count',10)]
     for q in questions:
         opts = q['options'][:]
         random.shuffle(opts)
         q['shuffled_options'] = opts
-
     token = str(uuid.uuid4())
     test_data = {
-        'id': str(uuid.uuid4()),
-        'fio': fio, 'group': group, 'category': category,
-        'questions': questions,
-        'start_time': time.time(),
-        'time_limit': config.get('time_limit', 30) * 60,
-        'answers': []
+        'id': str(uuid.uuid4()), 'fio': fio, 'group': group, 'category': category,
+        'questions': questions, 'start_time': time.time(),
+        'time_limit': config.get('time_limit',30)*60, 'answers': []
     }
     save_active_test(token, test_data)
-
     resp = jsonify({'success': True, 'total': len(questions), 'token': token})
     resp.set_cookie('test_token', token, max_age=7200, samesite='Lax')
     return resp
@@ -201,61 +245,51 @@ def test_page():
     t = load_active_test(token)
     if not t:
         return render_template('error.html', msg='Test topilmadi. Qaytadan boshlang.')
-    remaining = max(0, t['time_limit'] - (time.time() - t['start_time']))
+    remaining = max(0, t['time_limit'] - (time.time()-t['start_time']))
     return render_template('test.html',
-                           fio=t['fio'], group=t['group'],
-                           category=t['category'],
-                           total=len(t['questions']),
-                           time_limit=int(remaining),
-                           token=token)
+                           fio=t['fio'], group=t['group'], category=t['category'],
+                           total=len(t['questions']), time_limit=int(remaining), token=token)
 
 @app.route('/get_question/<int:idx>')
 def get_question(idx):
     token = get_test_token()
-    if not token: return jsonify({'error': 'Token topilmadi'}), 400
+    if not token: return jsonify({'error':'Token topilmadi'}),400
     t = load_active_test(token)
-    if not t: return jsonify({'error': 'Test topilmadi'}), 400
-    elapsed = time.time() - t['start_time']
-    if elapsed > t['time_limit']: return jsonify({'timeout': True})
-    if idx >= len(t['questions']): return jsonify({'done': True})
+    if not t: return jsonify({'error':'Test topilmadi'}),400
+    elapsed = time.time()-t['start_time']
+    if elapsed > t['time_limit']: return jsonify({'timeout':True})
+    if idx >= len(t['questions']): return jsonify({'done':True})
     q = t['questions'][idx]
-    return jsonify({
-        'question': q['question'],
-        'options': q['shuffled_options'],
-        'index': idx,
-        'total': len(t['questions']),
-        'remaining': int(t['time_limit'] - elapsed)
-    })
+    return jsonify({'question':q['question'],'options':q['shuffled_options'],
+                    'index':idx,'total':len(t['questions']),'remaining':int(t['time_limit']-elapsed)})
 
 @app.route('/submit_answer', methods=['POST'])
 def submit_answer():
     token = get_test_token()
-    if not token: return jsonify({'error': 'Token topilmadi'}), 400
+    if not token: return jsonify({'error':'Token topilmadi'}),400
     t = load_active_test(token)
-    if not t: return jsonify({'error': 'Test topilmadi'}), 400
+    if not t: return jsonify({'error':'Test topilmadi'}),400
     data = request.json
     q = t['questions'][data['index']]
     correct = (data['answer'] == q['correct'])
-    t['answers'].append({'index': data['index'], 'answer': data['answer'], 'correct': correct})
+    t['answers'].append({'index':data['index'],'answer':data['answer'],'correct':correct})
     update_active_test_answers(token, t['answers'])
-    return jsonify({'correct': correct, 'correct_answer': q['correct']})
+    return jsonify({'correct':correct,'correct_answer':q['correct']})
 
 @app.route('/finish_test', methods=['POST'])
 def finish_test():
     token = get_test_token()
-    if not token: return jsonify({'error': 'Token topilmadi'}), 400
+    if not token: return jsonify({'error':'Token topilmadi'}),400
     t = load_active_test(token)
-    if not t: return jsonify({'error': 'Test topilmadi'}), 400
+    if not t: return jsonify({'error':'Test topilmadi'}),400
     total = len(t['questions'])
     correct_count = sum(1 for a in t['answers'] if a['correct'])
-    percentage = round(correct_count / total * 100, 1) if total > 0 else 0
+    percentage = round(correct_count/total*100,1) if total>0 else 0
     result = {
-        'id': str(uuid.uuid4()), 'fio': t['fio'], 'group': t['group'],
-        'category': t['category'], 'total': total,
-        'correct': correct_count, 'wrong': total - correct_count,
-        'percentage': percentage,
-        'date': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
-        'answers': t['answers']
+        'id': str(uuid.uuid4()), 'fio':t['fio'], 'group':t['group'], 'category':t['category'],
+        'total':total, 'correct':correct_count, 'wrong':total-correct_count,
+        'percentage':percentage, 'date':datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+        'answers':t['answers']
     }
     db_save_result(result)
     delete_active_test(token)
@@ -263,86 +297,225 @@ def finish_test():
     resp.delete_cookie('test_token')
     return resp
 
+# ══════════════════════════════════════════════════════════
+# O'QITUVCHI ROUTES
+# ══════════════════════════════════════════════════════════
+@app.route('/teacher/login', methods=['GET','POST'])
+def teacher_login():
+    if request.method == 'POST':
+        username = request.form.get('username','').strip()
+        password = request.form.get('password','')
+        con = get_db()
+        t = con.execute('SELECT * FROM teachers WHERE username=? AND is_active=1',(username,)).fetchone()
+        con.close()
+        if t and check_password_hash(t['password_hash'], password):
+            session['teacher_id'] = t['id']
+            session['teacher_name'] = t['name']
+            return redirect(url_for('teacher_dashboard'))
+        return render_template('teacher_login.html', error="Login yoki parol noto'g'ri!")
+    return render_template('teacher_login.html', error=None)
+
+@app.route('/teacher/register', methods=['GET','POST'])
+def teacher_register():
+    if request.method == 'POST':
+        name = request.form.get('name','').strip()
+        username = request.form.get('username','').strip()
+        email = request.form.get('email','').strip()
+        password = request.form.get('password','')
+        password2 = request.form.get('password2','')
+        if not all([name, username, password]):
+            return render_template('teacher_register.html', error='Barcha maydonlarni to\'ldiring!')
+        if password != password2:
+            return render_template('teacher_register.html', error='Parollar mos kelmadi!')
+        if len(password) < 6:
+            return render_template('teacher_register.html', error='Parol kamida 6 ta belgi bo\'lishi kerak!')
+        con = get_db()
+        ex = con.execute('SELECT id FROM teachers WHERE username=?',(username,)).fetchone()
+        if ex:
+            con.close()
+            return render_template('teacher_register.html', error='Bu login band, boshqa tanlang!')
+        tid = str(uuid.uuid4())
+        con.execute('INSERT INTO teachers (id,name,username,password_hash,email,created_at) VALUES (?,?,?,?,?,?)',
+                    (tid, name, username, generate_password_hash(password), email,
+                     datetime.now().strftime('%Y-%m-%d %H:%M:%S')))
+        con.commit(); con.close()
+        session['teacher_id'] = tid
+        session['teacher_name'] = name
+        return redirect(url_for('teacher_dashboard'))
+    return render_template('teacher_register.html', error=None)
+
+@app.route('/teacher/logout')
+def teacher_logout():
+    session.pop('teacher_id', None)
+    session.pop('teacher_name', None)
+    return redirect(url_for('teacher_login'))
+
+@app.route('/teacher')
+@teacher_login_required
+def teacher_dashboard():
+    teacher = get_current_teacher()
+    config = load_config()
+    categories = get_test_categories(teacher['id'])
+    # faqat bu o'qituvchi kategoriyalari
+    t_dir = os.path.join(TESTS_DIR, f"teacher_{teacher['id']}")
+    my_cats = []
+    if os.path.exists(t_dir):
+        my_cats = [f[:-5] for f in sorted(os.listdir(t_dir)) if f.endswith('.xlsx')]
+    results = db_load_results(teacher_id=teacher['id'])
+    all_cats = list(set([r['category'] for r in results]))
+    return render_template('teacher_dashboard.html',
+                           teacher=teacher, config=config,
+                           my_categories=my_cats,
+                           result_categories=all_cats,
+                           results=results)
+
+@app.route('/teacher/upload_test', methods=['POST'])
+@teacher_login_required
+def teacher_upload_test():
+    teacher = get_current_teacher()
+    if 'file' not in request.files:
+        return jsonify({'error':'Fayl yuklanmadi'}),400
+    f = request.files['file']
+    name = request.form.get('name','').strip()
+    if not name: return jsonify({'error':'Test nomi kiritilmagan'}),400
+    if not f.filename.endswith('.xlsx'): return jsonify({'error':'Faqat xlsx fayl'}),400
+    t_dir = get_teacher_tests_dir(teacher['id'])
+    f.save(os.path.join(t_dir, f"{name}.xlsx"))
+    return jsonify({'success':True,'message':f'"{name}" muvaffaqiyatli yuklandi!'})
+
+@app.route('/teacher/delete_test', methods=['POST'])
+@teacher_login_required
+def teacher_delete_test():
+    teacher = get_current_teacher()
+    name = request.json.get('name','')
+    t_dir = get_teacher_tests_dir(teacher['id'])
+    path = os.path.join(t_dir, f"{name}.xlsx")
+    if os.path.exists(path): os.remove(path); return jsonify({'success':True})
+    return jsonify({'error':'Fayl topilmadi'}),404
+
+@app.route('/teacher/export_results', methods=['POST'])
+@teacher_login_required
+def teacher_export_results():
+    teacher = get_current_teacher()
+    data = request.json
+    category = data.get('category','all')
+    results = db_load_results(category=category if category!='all' else None, teacher_id=teacher['id'])
+    if not results: return jsonify({'error':'Natijalar topilmadi'}),404
+    return _build_excel_response(results, category)
+
+# ══════════════════════════════════════════════════════════
+# ADMIN ROUTES
+# ══════════════════════════════════════════════════════════
 @app.route('/admin')
 def admin():
     config = load_config()
     categories = get_test_categories()
     results = db_load_results()
+    con = get_db()
+    teachers = [dict(r) for r in con.execute('SELECT * FROM teachers ORDER BY created_at DESC').fetchall()]
+    con.close()
     return render_template('admin.html', config=config,
-                           categories=list(categories.keys()), results=results)
+                           categories=list(categories.keys()),
+                           results=results, teachers=teachers)
 
 @app.route('/admin/save_config', methods=['POST'])
 def save_config_route():
     data = request.json; config = load_config()
     if data.get('password') != config.get('admin_password','admin123'):
-        return jsonify({'error': "Noto'g'ri parol!"}), 403
-    config['time_limit'] = int(data.get('time_limit', 30))
-    config['question_count'] = int(data.get('question_count', 10))
+        return jsonify({'error':"Noto'g'ri parol!"}),403
+    config['time_limit'] = int(data.get('time_limit',30))
+    config['question_count'] = int(data.get('question_count',10))
     if data.get('new_password'): config['admin_password'] = data['new_password']
-    save_config(config); return jsonify({'success': True})
+    save_config(config); return jsonify({'success':True})
 
 @app.route('/admin/upload_test', methods=['POST'])
 def upload_test():
-    if 'file' not in request.files: return jsonify({'error': 'Fayl yuklanmadi'}), 400
+    if 'file' not in request.files: return jsonify({'error':'Fayl yuklanmadi'}),400
     f = request.files['file']; name = request.form.get('name','').strip()
     if load_config().get('admin_password') != request.form.get('password',''):
-        return jsonify({'error': "Noto'g'ri parol!"}), 403
-    if not name: return jsonify({'error': 'Test nomi kiritilmagan'}), 400
-    if not f.filename.endswith('.xlsx'): return jsonify({'error': 'Faqat xlsx fayl'}), 400
-    os.makedirs(TESTS_DIR, exist_ok=True)
-    f.save(os.path.join(TESTS_DIR, f"{name}.xlsx"))
-    return jsonify({'success': True, 'message': f'"{name}" muvaffaqiyatli yuklandi!'})
+        return jsonify({'error':"Noto'g'ri parol!"}),403
+    if not name: return jsonify({'error':'Test nomi kiritilmagan'}),400
+    if not f.filename.endswith('.xlsx'): return jsonify({'error':'Faqat xlsx fayl'}),400
+    admin_dir = get_teacher_tests_dir(None)
+    f.save(os.path.join(admin_dir, f"{name}.xlsx"))
+    return jsonify({'success':True,'message':f'"{name}" muvaffaqiyatli yuklandi!'})
 
 @app.route('/admin/delete_test', methods=['POST'])
 def delete_test():
     data = request.json
     if data.get('password') != load_config().get('admin_password'):
-        return jsonify({'error': "Noto'g'ri parol!"}), 403
-    path = os.path.join(TESTS_DIR, f"{data.get('name')}.xlsx")
-    if os.path.exists(path): os.remove(path); return jsonify({'success': True})
-    return jsonify({'error': 'Fayl topilmadi'}), 404
+        return jsonify({'error':"Noto'g'ri parol!"}),403
+    name = data.get('name','')
+    for d in [os.path.join(TESTS_DIR,'admin'), TESTS_DIR]:
+        path = os.path.join(d, f"{name}.xlsx")
+        if os.path.exists(path): os.remove(path); return jsonify({'success':True})
+    return jsonify({'error':'Fayl topilmadi'}),404
 
-@app.route('/export_results', methods=['POST'])
+@app.route('/admin/export_results', methods=['POST'])
 def export_results():
     data = request.json
     if data.get('password') != load_config().get('admin_password'):
-        return jsonify({'error': "Noto'g'ri parol!"}), 403
+        return jsonify({'error':"Noto'g'ri parol!"}),403
     results = db_load_results(data.get('category','all'))
-    if not results: return jsonify({'error': 'Natijalar topilmadi'}), 404
+    if not results: return jsonify({'error':'Natijalar topilmadi'}),404
+    return _build_excel_response(results, data.get('category','all'))
 
+@app.route('/admin/toggle_teacher', methods=['POST'])
+def toggle_teacher():
+    data = request.json
+    if data.get('password') != load_config().get('admin_password'):
+        return jsonify({'error':"Noto'g'ri parol!"}),403
+    con = get_db()
+    con.execute('UPDATE teachers SET is_active=? WHERE id=?',(data.get('active',1),data.get('id')))
+    con.commit(); con.close()
+    return jsonify({'success':True})
+
+@app.route('/admin/delete_teacher', methods=['POST'])
+def delete_teacher():
+    data = request.json
+    if data.get('password') != load_config().get('admin_password'):
+        return jsonify({'error':"Noto'g'ri parol!"}),403
+    con = get_db()
+    con.execute('DELETE FROM teachers WHERE id=?',(data.get('id'),))
+    con.commit(); con.close()
+    return jsonify({'success':True})
+
+# ── EXCEL EXPORT helper ───────────────────────────────────
+def _build_excel_response(results, category_label):
     wb = openpyxl.Workbook(); ws = wb.active; ws.title = "Natijalar"
-    h_fill = PatternFill("solid", fgColor="1A3A6B")
-    h_font = Font(bold=True, color="FFFFFF", name="Arial", size=11)
-    border = Border(left=Side(style='thin'), right=Side(style='thin'),
-                    top=Side(style='thin'), bottom=Side(style='thin'))
-    even_fill = PatternFill("solid", fgColor="EBF5FB")
-    headers = ["№","F.I.O.","Guruh","Kategoriya","Savollar soni","To'g'ri javob","Xato javob","Foiz (%)","Sana"]
+    h_fill = PatternFill("solid",fgColor="1A3A6B")
+    h_font = Font(bold=True,color="FFFFFF",name="Arial",size=11)
+    border = Border(left=Side(style='thin'),right=Side(style='thin'),
+                    top=Side(style='thin'),bottom=Side(style='thin'))
+    even_fill = PatternFill("solid",fgColor="EBF5FB")
+    headers = ["№","F.I.O.","Guruh","Kategoriya","Savollar soni","To'g'ri","Xato","Foiz (%)","Sana"]
     ws.append(headers)
     for cell in ws[1]:
-        cell.fill = h_fill; cell.font = h_font
-        cell.alignment = Alignment(horizontal='center', vertical='center'); cell.border = border
+        cell.fill=h_fill; cell.font=h_font
+        cell.alignment=Alignment(horizontal='center',vertical='center'); cell.border=border
     ws.row_dimensions[1].height = 28
-    for i, r in enumerate(results, 1):
+    for i,r in enumerate(results,1):
         ws.append([i,r['fio'],r['group'],r['category'],r['total'],r['correct'],r['wrong'],r['percentage'],r['date']])
         for cell in ws[ws.max_row]:
-            cell.border = border; cell.alignment = Alignment(horizontal='center', vertical='center')
-            if i % 2 == 0: cell.fill = even_fill
+            cell.border=border; cell.alignment=Alignment(horizontal='center',vertical='center')
+            if i%2==0: cell.fill=even_fill
         pct = ws.cell(row=ws.max_row, column=8)
-        if isinstance(pct.value, (int, float)):
-            color = "1E8449" if pct.value >= 85 else ("D4AC0D" if pct.value >= 55 else "C0392B")
-            pct.font = Font(color=color, bold=True, name="Arial")
-    for i, w in enumerate([5,30,15,20,16,14,12,12,22], 1):
-        ws.column_dimensions[openpyxl.utils.get_column_letter(i)].width = w
-    os.makedirs(RESULTS_DIR, exist_ok=True)
-    fname = f"natijalar_{data.get('category','all')}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.xlsx"
+        if isinstance(pct.value,(int,float)):
+            color="1E8449" if pct.value>=85 else ("D4AC0D" if pct.value>=55 else "C0392B")
+            pct.font=Font(color=color,bold=True,name="Arial")
+    for i,w in enumerate([5,30,15,20,14,12,10,12,22],1):
+        ws.column_dimensions[openpyxl.utils.get_column_letter(i)].width=w
+    os.makedirs(RESULTS_DIR,exist_ok=True)
+    fname = f"natijalar_{category_label}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.xlsx"
     fpath = os.path.join(RESULTS_DIR, fname)
     wb.save(fpath)
     return send_file(fpath, as_attachment=True, download_name=fname)
 
+# ── INIT ──────────────────────────────────────────────────
 with app.app_context():
     init_db()
     if not os.path.exists(CONFIG_FILE): save_config(DEFAULT_CONFIG)
 
 if __name__ == '__main__':
-    port = int(os.environ.get('PORT', 5050))
+    port = int(os.environ.get('PORT',5050))
     app.run(host='0.0.0.0', port=port, debug=False)

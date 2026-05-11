@@ -74,14 +74,18 @@ async function startTest() {
   const group = document.getElementById('group').value.trim();
   const category = document.getElementById('category').value;
   const errEl = document.getElementById('error-msg');
+  const btn = document.querySelector('.btn');
   errEl.style.display = 'none';
-  
+
   if (!fio || !group) {
     errEl.textContent = '❌ F.I.O. va guruhni to\'liq kiriting!';
     errEl.style.display = 'block';
     return;
   }
-  
+
+  btn.textContent = '⏳ Yuklanmoqda...';
+  btn.disabled = true;
+
   const res = await fetch('/start_test', {
     method: 'POST',
     headers: {'Content-Type': 'application/json'},
@@ -91,8 +95,11 @@ async function startTest() {
   if (data.error) {
     errEl.textContent = '❌ ' + data.error;
     errEl.style.display = 'block';
+    btn.textContent = '🚀 Testni Boshlash';
+    btn.disabled = false;
   } else {
-    location.href = '/test';
+    // Token ham URL ga qo'shamiz, ham cookie orqali ketadi
+    location.href = '/test?token=' + data.token;
   }
 }
 </script>
