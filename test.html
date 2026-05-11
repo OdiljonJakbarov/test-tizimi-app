@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Test Tizimi</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Segoe UI', Arial, sans-serif; background: linear-gradient(135deg, #1a3a6b 0%, #2563b0 50%, #1a3a6b 100%); min-height: 100vh; display: flex; align-items: center; justify-content: center; }
+.container { background: white; border-radius: 16px; padding: 40px; width: 100%; max-width: 520px; box-shadow: 0 20px 60px rgba(0,0,0,0.3); }
+.logo { text-align: center; margin-bottom: 30px; }
+.logo h1 { font-size: 26px; color: #1a3a6b; font-weight: 700; }
+.logo p { color: #666; font-size: 14px; margin-top: 6px; }
+.info-bar { background: #f0f4ff; border-left: 4px solid #2563b0; border-radius: 6px; padding: 12px 16px; margin-bottom: 24px; font-size: 13px; color: #444; }
+.info-bar span { font-weight: 600; color: #1a3a6b; }
+.form-group { margin-bottom: 18px; }
+label { display: block; font-size: 14px; font-weight: 600; color: #333; margin-bottom: 6px; }
+input, select { width: 100%; padding: 12px 14px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 15px; transition: border-color 0.2s; outline: none; }
+input:focus, select:focus { border-color: #2563b0; }
+.btn { width: 100%; padding: 14px; background: linear-gradient(135deg, #1a3a6b, #2563b0); color: white; border: none; border-radius: 8px; font-size: 16px; font-weight: 600; cursor: pointer; transition: opacity 0.2s; margin-top: 8px; }
+.btn:hover { opacity: 0.9; }
+.btn-admin { background: linear-gradient(135deg, #666, #888); margin-top: 12px; font-size: 14px; padding: 10px; }
+.error { color: #c0392b; font-size: 13px; margin-top: 8px; display: none; }
+.divider { text-align: center; margin: 20px 0; color: #aaa; font-size: 13px; position: relative; }
+.divider::before, .divider::after { content: ''; position: absolute; top: 50%; width: 42%; height: 1px; background: #e0e0e0; }
+.divider::before { left: 0; } .divider::after { right: 0; }
+.category-group { background: #f8f9fa; border-radius: 8px; padding: 14px; margin-bottom: 12px; }
+.category-group label { color: #555; font-size: 13px; margin-bottom: 8px; }
+.yn-badge { display: inline-block; background: #7b2d8b; color: white; font-size: 11px; padding: 2px 8px; border-radius: 10px; margin-left: 6px; }
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="logo">
+    <h1>📝 Test Tizimi</h1>
+    <p>Bilimingizni sinab ko'ring</p>
+  </div>
+  
+  <div class="info-bar">
+    ⏱ Vaqt limiti: <span>{{ config.time_limit }} daqiqa</span> &nbsp;|&nbsp;
+    📋 Savollar soni: <span>{{ config.question_count }} ta</span>
+  </div>
+
+  <div class="form-group">
+    <label>F.I.O. (To'liq ism sharif)</label>
+    <input type="text" id="fio" placeholder="Masalan: Karimov Alisher Bekovich" />
+  </div>
+  <div class="form-group">
+    <label>Guruh</label>
+    <input type="text" id="group" placeholder="Masalan: CS-101" />
+  </div>
+  
+  <div class="category-group">
+    <label>📂 Test turini tanlang</label>
+    <select id="category">
+      {% for cat in categories %}
+      <option value="{{ cat }}">{{ cat }}</option>
+      {% endfor %}
+      {% if has_yn %}
+      <option value="YaN">⭐ Yakuniy nazorat (YaN) — 1-ON + 2-ON aralash <span class="yn-badge">YaN</span></option>
+      {% endif %}
+    </select>
+  </div>
+
+  <div class="error" id="error-msg">❌ Xatolik yuz berdi</div>
+  <button class="btn" onclick="startTest()">🚀 Testni Boshlash</button>
+  <div class="divider">yoki</div>
+  <button class="btn btn-admin" onclick="location.href='/admin'">⚙️ Administrator Paneli</button>
+</div>
+
+<script>
+async function startTest() {
+  const fio = document.getElementById('fio').value.trim();
+  const group = document.getElementById('group').value.trim();
+  const category = document.getElementById('category').value;
+  const errEl = document.getElementById('error-msg');
+  const btn = document.querySelector('.btn');
+  errEl.style.display = 'none';
+
+  if (!fio || !group) {
+    errEl.textContent = '❌ F.I.O. va guruhni to\'liq kiriting!';
+    errEl.style.display = 'block';
+    return;
+  }
+
+  btn.textContent = '⏳ Yuklanmoqda...';
+  btn.disabled = true;
+
+  const res = await fetch('/start_test', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({fio, group, category})
+  });
+  const data = await res.json();
+  if (data.error) {
+    errEl.textContent = '❌ ' + data.error;
+    errEl.style.display = 'block';
+    btn.textContent = '🚀 Testni Boshlash';
+    btn.disabled = false;
+  } else {
+    // Token ham URL ga qo'shamiz, ham cookie orqali ketadi
+    location.href = '/test?token=' + data.token;
+  }
+}
+</script>
+</body>
+</html>
