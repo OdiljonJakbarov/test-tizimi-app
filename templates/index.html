@@ -5,91 +5,261 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Test Tizimi</title>
 <style>
-* { box-sizing: border-box; margin: 0; padding: 0; }
-body { font-family: 'Segoe UI', Arial, sans-serif; background: linear-gradient(135deg, #1a3a6b 0%, #2563b0 50%, #1a3a6b 100%); min-height: 100vh; display: flex; align-items: center; justify-content: center; }
-.container { background: white; border-radius: 16px; padding: 40px; width: 100%; max-width: 520px; box-shadow: 0 20px 60px rgba(0,0,0,0.3); }
-.logo { text-align: center; margin-bottom: 30px; }
-.logo h1 { font-size: 26px; color: #1a3a6b; font-weight: 700; }
-.logo p { color: #666; font-size: 14px; margin-top: 6px; }
-.info-bar { background: #f0f4ff; border-left: 4px solid #2563b0; border-radius: 6px; padding: 12px 16px; margin-bottom: 24px; font-size: 13px; color: #444; }
-.info-bar span { font-weight: 600; color: #1a3a6b; }
-.form-group { margin-bottom: 18px; }
-label { display: block; font-size: 14px; font-weight: 600; color: #333; margin-bottom: 6px; }
-input, select { width: 100%; padding: 12px 14px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 15px; transition: border-color 0.2s; outline: none; }
-input:focus, select:focus { border-color: #2563b0; }
-.btn { width: 100%; padding: 14px; background: linear-gradient(135deg, #1a3a6b, #2563b0); color: white; border: none; border-radius: 8px; font-size: 16px; font-weight: 600; cursor: pointer; transition: opacity 0.2s; margin-top: 8px; }
-.btn:hover { opacity: 0.9; }
-.btn-admin { background: linear-gradient(135deg, #666, #888); margin-top: 12px; font-size: 14px; padding: 10px; }
-.error { color: #c0392b; font-size: 13px; margin-top: 8px; display: none; }
-.divider { text-align: center; margin: 20px 0; color: #aaa; font-size: 13px; position: relative; }
-.divider::before, .divider::after { content: ''; position: absolute; top: 50%; width: 42%; height: 1px; background: #e0e0e0; }
-.divider::before { left: 0; } .divider::after { right: 0; }
-.category-group { background: #f8f9fa; border-radius: 8px; padding: 14px; margin-bottom: 12px; }
-.category-group label { color: #555; font-size: 13px; margin-bottom: 8px; }
-.yn-badge { display: inline-block; background: #7b2d8b; color: white; font-size: 11px; padding: 2px 8px; border-radius: 10px; margin-left: 6px; }
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Segoe UI',Arial,sans-serif;background:linear-gradient(160deg,#0a2a5e 0%,#1a5276 50%,#0a2a5e 100%);min-height:100vh;display:flex;flex-direction:column;}
+
+/* TOP RIGHT ADMIN BUTTON */
+.admin-btn{position:fixed;top:14px;right:18px;z-index:100;background:rgba(255,255,255,0.15);color:white;text-decoration:none;padding:8px 16px;border-radius:8px;font-size:13px;font-weight:600;border:1px solid rgba(255,255,255,0.3);backdrop-filter:blur(6px);transition:background .2s;}
+.admin-btn:hover{background:rgba(255,255,255,0.25);}
+
+/* MAIN LAYOUT */
+.page{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding:28px 16px 40px;}
+
+/* GERB */
+.gerb-wrap{margin-bottom:10px;}
+.gerb-svg{width:90px;height:90px;filter:drop-shadow(0 4px 12px rgba(0,0,0,0.4));}
+
+/* TITLE */
+.title-block{text-align:center;color:white;margin-bottom:22px;}
+.title-block h1{font-size:24px;font-weight:800;letter-spacing:.5px;text-shadow:0 2px 8px rgba(0,0,0,.4);}
+.title-block p{font-size:13px;opacity:.75;margin-top:4px;}
+
+/* CARD */
+.card{background:rgba(255,255,255,0.97);border-radius:18px;padding:30px 28px;width:100%;max-width:500px;box-shadow:0 24px 64px rgba(0,0,0,.35);}
+
+.form-group{margin-bottom:16px;}
+label{display:block;font-size:13px;font-weight:700;color:#1a3a6b;margin-bottom:5px;letter-spacing:.3px;}
+input,select{width:100%;padding:12px 14px;border:2px solid #e0e8f0;border-radius:10px;font-size:14px;outline:none;transition:border-color .2s;background:white;color:#222;}
+input:focus,select:focus{border-color:#1a5276;}
+input::placeholder{color:#aaa;}
+select:disabled{background:#f5f5f5;color:#aaa;cursor:not-allowed;}
+
+/* Step indicator */
+.step-badge{display:inline-flex;align-items:center;gap:6px;background:#e8f0fe;color:#1a3a6b;font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px;margin-bottom:6px;letter-spacing:.3px;}
+.step-badge.active{background:#1a3a6b;color:white;}
+
+.divider{height:1px;background:#eee;margin:18px 0;}
+
+/* TEACHER AVATAR LIST */
+.teacher-select-wrap{position:relative;}
+select.teacher-sel{appearance:none;-webkit-appearance:none;padding-right:36px;cursor:pointer;}
+.sel-arrow{position:absolute;right:14px;top:50%;transform:translateY(-50%);pointer-events:none;color:#666;font-size:12px;}
+
+/* INFO BAR */
+.info-bar{background:#f0f4ff;border-left:4px solid #1a3a6b;border-radius:8px;padding:10px 14px;font-size:13px;color:#444;margin-bottom:16px;display:none;}
+.info-bar span{font-weight:700;color:#1a3a6b;}
+
+/* BUTTONS */
+.btn-start{width:100%;padding:14px;background:linear-gradient(135deg,#1a3a6b,#2563b0);color:white;border:none;border-radius:10px;font-size:16px;font-weight:700;cursor:pointer;transition:opacity .2s;margin-top:6px;letter-spacing:.5px;}
+.btn-start:hover{opacity:.9;}
+.btn-start:disabled{opacity:.45;cursor:not-allowed;}
+
+.teacher-links{display:flex;gap:10px;margin-top:14px;justify-content:center;}
+.teacher-links a{font-size:13px;color:#1a5276;text-decoration:none;font-weight:600;padding:6px 14px;border-radius:8px;border:1.5px solid #c5d8ea;transition:background .2s;}
+.teacher-links a:hover{background:#eaf2fb;}
+
+.error-msg{background:#fdf2f2;color:#c0392b;border:1px solid #f5b7b1;border-radius:8px;padding:10px 14px;font-size:13px;margin-top:10px;display:none;}
 </style>
 </head>
 <body>
-<div class="container">
-  <div class="logo">
+
+<a href="/admin" class="admin-btn">⚙️ Administrator paneli</a>
+
+<div class="page">
+  <!-- O'ZBEKISTON GERBI -->
+  <div class="gerb-wrap">
+    <!-- O'zbekiston Respublikasi Davlat gerbi (SVG) -->
+    <svg class="gerb-svg" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+      <!-- Outer circle background -->
+      <circle cx="100" cy="100" r="98" fill="#1a5276" stroke="#c9a84c" stroke-width="3"/>
+      <!-- Inner circle -->
+      <circle cx="100" cy="100" r="82" fill="#1a6b3a" stroke="#c9a84c" stroke-width="2"/>
+      <!-- Sun rays -->
+      <g fill="#f0d060" opacity="0.9">
+        <polygon points="100,18 104,42 100,38 96,42"/>
+        <polygon points="145,28 134,50 131,45 142,24"/>
+        <polygon points="178,60 158,75 156,70 176,55"/>
+        <polygon points="188,105 164,105 165,100 189,100"/>
+        <polygon points="178,148 158,133 161,129 181,144"/>
+        <polygon points="145,178 134,158 138,155 149,175"/>
+        <polygon points="100,188 96,164 100,166 104,164"/>
+        <polygon points="55,178 66,158 62,155 51,175"/>
+        <polygon points="22,148 42,133 39,129 19,144"/>
+        <polygon points="12,105 36,105 35,100 11,100"/>
+        <polygon points="22,60 42,75 44,70 24,55"/>
+        <polygon points="55,28 66,50 69,45 58,24"/>
+      </g>
+      <!-- Crescent moon -->
+      <path d="M 100 55 A 30 30 0 1 1 100 145 A 22 22 0 1 0 100 55 Z" fill="#f0d060"/>
+      <!-- Stars around crescent -->
+      <g fill="#f0d060" font-size="12">
+        <text x="72" y="75" text-anchor="middle">★</text>
+        <text x="128" y="75" text-anchor="middle">★</text>
+        <text x="65" y="100" text-anchor="middle">★</text>
+        <text x="135" y="100" text-anchor="middle">★</text>
+        <text x="72" y="125" text-anchor="middle">★</text>
+        <text x="128" y="125" text-anchor="middle">★</text>
+      </g>
+      <!-- Bottom decorative band -->
+      <rect x="30" y="148" width="140" height="16" rx="4" fill="#c9a84c" opacity=".7"/>
+      <text x="100" y="161" text-anchor="middle" font-size="9" fill="white" font-weight="bold">O'ZBEKISTON</text>
+    </svg>
+  </div>
+
+  <div class="title-block">
     <h1>📝 Test Tizimi</h1>
-    <p>Bilimingizni sinab ko'ring</p>
-  </div>
-  
-  <div class="info-bar">
-    ⏱ Vaqt limiti: <span>{{ config.time_limit }} daqiqa</span> &nbsp;|&nbsp;
-    📋 Savollar soni: <span>{{ config.question_count }} ta</span>
+    <p>O'zbekiston Respublikasi</p>
   </div>
 
-  <div class="form-group">
-    <label>F.I.O. (To'liq ism sharif)</label>
-    <input type="text" id="fio" placeholder="Masalan: Karimov Alisher Bekovich" />
-  </div>
-  <div class="form-group">
-    <label>Guruh</label>
-    <input type="text" id="group" placeholder="Masalan: CS-101" />
-  </div>
-  
-  <div class="category-group">
-    <label>📂 Test turini tanlang</label>
-    <select id="category">
-      {% for cat in categories %}
-      <option value="{{ cat }}">{{ cat }}</option>
-      {% endfor %}
-      {% if has_yn %}
-      <option value="YaN">⭐ Yakuniy nazorat (YaN) — 1-ON + 2-ON aralash <span class="yn-badge">YaN</span></option>
-      {% endif %}
-    </select>
-  </div>
+  <div class="card">
 
-  <div class="error" id="error-msg">❌ Xatolik yuz berdi</div>
-  <button class="btn" onclick="startTest()">🚀 Testni Boshlash</button>
-  <div class="divider">yoki</div>
-  <button class="btn btn-admin" onclick="location.href='/admin'">⚙️ Administrator Paneli</button>
+    <!-- STEP 1: FIO & GURUH -->
+    <div class="step-badge active">① Talaba ma'lumotlari</div>
+    <div class="form-group" style="margin-top:8px;">
+      <label>F.I.O. (To'liq ism sharif)</label>
+      <input type="text" id="fio" placeholder="Masalan: Karimov Alisher Bekovich" oninput="checkStep1()"/>
+    </div>
+    <div class="form-group">
+      <label>Guruh</label>
+      <input type="text" id="group" placeholder="Masalan: CS-101" oninput="checkStep1()"/>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- STEP 2: O'QITUVCHI -->
+    <div class="step-badge" id="badge2">② O'qituvchini tanlang</div>
+    <div class="form-group" style="margin-top:8px;">
+      <label>O'qituvchi</label>
+      <div class="teacher-select-wrap">
+        <select id="teacher" class="teacher-sel" disabled onchange="onTeacherChange()">
+          <option value="">— O'qituvchini tanlang —</option>
+          {% for t in teachers %}
+          <option value="{{ t.id }}">{{ t.name }}</option>
+          {% endfor %}
+        </select>
+        <div class="sel-arrow">▼</div>
+      </div>
+    </div>
+
+    <!-- INFO BAR -->
+    <div class="info-bar" id="info-bar">
+      ⏱ Vaqt: <span id="info-time">—</span> daqiqa &nbsp;|&nbsp;
+      📋 Savollar: <span id="info-count">—</span> ta
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- STEP 3: TEST TURI -->
+    <div class="step-badge" id="badge3">③ Test turini tanlang</div>
+    <div class="form-group" style="margin-top:8px;">
+      <label>Test turi</label>
+      <div class="teacher-select-wrap">
+        <select id="category" class="teacher-sel" disabled onchange="checkStep3()">
+          <option value="">— Avval o'qituvchini tanlang —</option>
+        </select>
+        <div class="sel-arrow">▼</div>
+      </div>
+    </div>
+
+    <div class="error-msg" id="error-msg"></div>
+
+    <button class="btn-start" id="btn-start" onclick="startTest()" disabled>
+      🚀 Testni Boshlash
+    </button>
+
+    <div class="teacher-links">
+      <a href="/teacher/login">👨‍🏫 O'qituvchi kirish</a>
+      <a href="/teacher/register">✏️ Ro'yxatdan o'tish</a>
+    </div>
+  </div>
 </div>
 
 <script>
+// O'qituvchi ma'lumotlari (server dan)
+const TEACHERS_DATA = {};
+{% for t in teachers %}
+TEACHERS_DATA['{{ t.id }}'] = {
+  name: '{{ t.name }}',
+  time_limit: {{ t.time_limit or 30 }},
+  question_count: {{ t.question_count or 10 }}
+};
+{% endfor %}
+
+function checkStep1() {
+  const fio = document.getElementById('fio').value.trim();
+  const grp = document.getElementById('group').value.trim();
+  const ok = fio.length >= 3 && grp.length >= 1;
+  const teacherSel = document.getElementById('teacher');
+  const badge2 = document.getElementById('badge2');
+  teacherSel.disabled = !ok;
+  badge2.className = 'step-badge' + (ok ? ' active' : '');
+  if (!ok) {
+    document.getElementById('category').disabled = true;
+    document.getElementById('btn-start').disabled = true;
+  }
+}
+
+function onTeacherChange() {
+  const tid = document.getElementById('teacher').value;
+  const catSel = document.getElementById('category');
+  const infoBar = document.getElementById('info-bar');
+  const badge3 = document.getElementById('badge3');
+
+  catSel.innerHTML = '<option value="">Yuklanmoqda...</option>';
+  catSel.disabled = true;
+  document.getElementById('btn-start').disabled = true;
+  infoBar.style.display = 'none';
+
+  if (!tid) { badge3.className='step-badge'; return; }
+
+  // Info bar
+  const td = TEACHERS_DATA[tid];
+  if (td) {
+    document.getElementById('info-time').textContent = td.time_limit;
+    document.getElementById('info-count').textContent = td.question_count;
+    infoBar.style.display = 'block';
+  }
+
+  badge3.className = 'step-badge active';
+
+  fetch('/api/teacher_categories/' + tid)
+    .then(r => r.json())
+    .then(data => {
+      catSel.innerHTML = '<option value="">— Test turini tanlang —</option>';
+      if (data.categories.length === 0) {
+        catSel.innerHTML = '<option value="">Bu o\'qituvchida test yo\'q</option>';
+      } else {
+        data.categories.forEach(cat => {
+          const opt = document.createElement('option');
+          opt.value = cat;
+          opt.textContent = cat === 'YaN' ? '⭐ Yakuniy nazorat (YaN)' : cat;
+          catSel.appendChild(opt);
+        });
+        catSel.disabled = false;
+      }
+    });
+}
+
+function checkStep3() {
+  const cat = document.getElementById('category').value;
+  document.getElementById('btn-start').disabled = !cat;
+}
+
 async function startTest() {
   const fio = document.getElementById('fio').value.trim();
   const group = document.getElementById('group').value.trim();
+  const teacher_id = document.getElementById('teacher').value;
   const category = document.getElementById('category').value;
   const errEl = document.getElementById('error-msg');
-  const btn = document.querySelector('.btn');
   errEl.style.display = 'none';
 
-  if (!fio || !group) {
-    errEl.textContent = '❌ F.I.O. va guruhni to\'liq kiriting!';
-    errEl.style.display = 'block';
-    return;
-  }
-
+  const btn = document.getElementById('btn-start');
   btn.textContent = '⏳ Yuklanmoqda...';
   btn.disabled = true;
 
   const res = await fetch('/start_test', {
-    method: 'POST',
-    headers: {'Content-Type': 'application/json'},
-    body: JSON.stringify({fio, group, category})
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({fio, group, teacher_id, category})
   });
   const data = await res.json();
   if (data.error) {
@@ -98,7 +268,6 @@ async function startTest() {
     btn.textContent = '🚀 Testni Boshlash';
     btn.disabled = false;
   } else {
-    // Token ham URL ga qo'shamiz, ham cookie orqali ketadi
     location.href = '/test?token=' + data.token;
   }
 }

@@ -8,12 +8,12 @@
 *{box-sizing:border-box;margin:0;padding:0;}
 body{font-family:'Segoe UI',Arial,sans-serif;background:#f0f2f5;min-height:100vh;}
 .header{background:linear-gradient(135deg,#1a3a6b,#2563b0);color:white;padding:16px 28px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;}
-.header h1{font-size:18px;font-weight:700;}
-.header-right{display:flex;gap:10px;align-items:center;}
-.header-right span{font-size:13px;opacity:.85;}
-.header a{color:rgba(255,255,255,.85);text-decoration:none;font-size:13px;background:rgba(255,255,255,.15);padding:7px 14px;border-radius:6px;}
-.main{max-width:1100px;margin:28px auto;padding:0 16px;}
-.tabs{display:flex;gap:8px;margin-bottom:22px;flex-wrap:wrap;}
+.header-left h1{font-size:18px;font-weight:700;}
+.header-left p{font-size:13px;opacity:.75;margin-top:2px;}
+.header-right{display:flex;gap:8px;}
+.header-right a{color:rgba(255,255,255,.85);text-decoration:none;font-size:13px;background:rgba(255,255,255,.15);padding:7px 14px;border-radius:6px;}
+.main{max-width:1100px;margin:26px auto;padding:0 16px;}
+.tabs{display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap;}
 .tab{padding:10px 22px;border-radius:8px;border:none;cursor:pointer;font-size:14px;font-weight:600;background:white;color:#666;transition:all .2s;box-shadow:0 2px 6px rgba(0,0,0,.08);}
 .tab.active{background:linear-gradient(135deg,#1a3a6b,#2563b0);color:white;}
 .panel{display:none;}.panel.active{display:block;}
@@ -42,18 +42,23 @@ tr:hover td{background:#f8f9ff;}
 .pct-good{color:#27ae60;font-weight:700;}
 .pct-mid{color:#f39c12;font-weight:700;}
 .pct-low{color:#e74c3c;font-weight:700;}
-.export-row{display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end;margin-bottom:18px;}
-.stat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:20px;}
-.stat-box{background:#f8f9fa;border-radius:10px;padding:18px;text-align:center;}
-.stat-box .num{font-size:30px;font-weight:800;color:#1a3a6b;}
-.stat-box .lbl{font-size:12px;color:#888;margin-top:4px;}
+.stat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:20px;}
+.stat{background:#f8f9fa;border-radius:10px;padding:16px;text-align:center;}
+.stat .num{font-size:28px;font-weight:800;color:#1a3a6b;}
+.stat .lbl{font-size:12px;color:#888;margin-top:3px;}
+.export-row{display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end;margin-bottom:16px;}
+.hint{font-size:12px;color:#999;margin-top:5px;}
+.settings-info{background:#f0f4ff;border-radius:8px;padding:12px 16px;font-size:13px;color:#444;margin-bottom:18px;}
+.settings-info strong{color:#1a3a6b;}
 </style>
 </head>
 <body>
 <div class="header">
-  <h1>👨‍🏫 O'qituvchi Kabineti</h1>
+  <div class="header-left">
+    <h1>👨‍🏫 {{ teacher.name }}</h1>
+    <p>O'qituvchi kabineti &nbsp;|&nbsp; login: {{ teacher.username }}</p>
+  </div>
   <div class="header-right">
-    <span>👤 {{ teacher.name }}</span>
     <a href="/">🏠 Bosh sahifa</a>
     <a href="/teacher/logout">🚪 Chiqish</a>
   </div>
@@ -61,46 +66,71 @@ tr:hover td{background:#f8f9ff;}
 
 <div class="main">
   <div class="tabs">
-    <button class="tab active" onclick="showTab('tests')">📁 Test Fayllarim</button>
+    <button class="tab active" onclick="showTab('settings')">⚙️ Sozlamalar</button>
+    <button class="tab" onclick="showTab('tests')">📁 Test Fayllarim</button>
     <button class="tab" onclick="showTab('results')">📊 Natijalar</button>
   </div>
 
+  <!-- SOZLAMALAR -->
+  <div id="tab-settings" class="panel active">
+    <div class="card">
+      <h2>⚙️ Test Sozlamalari</h2>
+      <div class="settings-info">
+        Bu sozlamalar faqat <strong>sizning testlaringiz</strong>ga tegishli. Talabalar sizni tanlasalar, shu sozlamalar ishlaydi.
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>⏱ Vaqt limiti (daqiqada)</label>
+          <input type="number" id="time_limit" value="{{ teacher.time_limit or 30 }}" min="1" max="300"/>
+          <div class="hint">Har bir test sessiyasi uchun maksimal vaqt</div>
+        </div>
+        <div class="form-group">
+          <label>📋 Savollar soni (ta)</label>
+          <input type="number" id="question_count" value="{{ teacher.question_count or 10 }}" min="1" max="200"/>
+          <div class="hint">Talabaga beriladigan savollar soni</div>
+        </div>
+      </div>
+      <button class="btn btn-primary" onclick="saveSettings()">💾 Saqlash</button>
+      <div class="alert alert-success" id="set-ok">✅ Sozlamalar saqlandi!</div>
+      <div class="alert alert-error" id="set-err">❌ Xatolik yuz berdi!</div>
+    </div>
+  </div>
+
   <!-- TEST FAYLLARI -->
-  <div id="tab-tests" class="panel active">
+  <div id="tab-tests" class="panel">
     <div class="card">
       <h2>📤 Yangi Test Fayl Yuklash</h2>
       <p style="font-size:13px;color:#666;margin-bottom:14px;">
-        XLSX fayl: <strong>1-ustun</strong> savol | <strong>2-ustun</strong> to'g'ri javob | <strong>3,4,5-ustun</strong> noto'g'ri javoblar
+        XLSX format: <strong>1-ustun</strong> savol | <strong>2-ustun</strong> to'g'ri javob | <strong>3,4,5-ustunlar</strong> noto'g'ri javoblar
       </p>
       <div class="form-row">
         <div class="form-group">
           <label>Test nomi</label>
-          <input type="text" id="test-name" placeholder="Masalan: 1-ON_Matematika" />
+          <input type="text" id="test-name" placeholder="Masalan: 1-ON_Matematika"/>
+          <div class="hint">YaN uchun "1-ON" va "2-ON" nomlarini ishlating</div>
         </div>
         <div class="form-group">
           <label>XLSX fayl</label>
-          <input type="file" id="test-file" accept=".xlsx" />
+          <input type="file" id="test-file" accept=".xlsx"/>
         </div>
       </div>
       <button class="btn btn-success" onclick="uploadTest()">📤 Yuklash</button>
-      <div class="alert alert-success" id="up-ok">✅ Fayl muvaffaqiyatli yuklandi!</div>
-      <div class="alert alert-error" id="up-err">❌ Xatolik!</div>
+      <div class="alert alert-success" id="up-ok"></div>
+      <div class="alert alert-error" id="up-err"></div>
     </div>
 
     <div class="card">
       <h2>📂 Mening Test Fayllarim</h2>
-      <div id="file-list">
-        {% for cat in my_categories %}
-        <div class="file-item">
-          <div>
-            <div class="name">📄 {{ cat }}</div>
-          </div>
-          <button class="btn btn-danger" onclick="deleteTest('{{ cat }}')">🗑 O'chirish</button>
-        </div>
-        {% else %}
-        <p style="color:#999;text-align:center;padding:20px;">Hozircha test fayllaringiz yo'q. Yuqoridan yuklang.</p>
-        {% endfor %}
+      {% if my_categories %}
+      {% for cat in my_categories %}
+      <div class="file-item">
+        <div><div class="name">📄 {{ cat }}</div></div>
+        <button class="btn btn-danger" style="padding:7px 14px;font-size:13px;" onclick="deleteTest('{{ cat }}')">🗑 O'chirish</button>
       </div>
+      {% endfor %}
+      {% else %}
+      <p style="color:#999;text-align:center;padding:20px;">Hozircha test fayllaringiz yo'q</p>
+      {% endif %}
     </div>
   </div>
 
@@ -110,13 +140,13 @@ tr:hover td{background:#f8f9ff;}
       <h2>📊 O'quvchilar Natijalari</h2>
       {% if results %}
       <div class="stat-grid">
-        <div class="stat-box"><div class="num">{{ results|length }}</div><div class="lbl">Jami topshiriqlar</div></div>
-        <div class="stat-box"><div class="num" style="color:#27ae60;">{{ results|selectattr('percentage','ge',55)|list|length }}</div><div class="lbl">O'tganlar (≥55%)</div></div>
-        <div class="stat-box"><div class="num" style="color:#e74c3c;">{{ results|selectattr('percentage','lt',55)|list|length }}</div><div class="lbl">O'tmaganlar</div></div>
+        <div class="stat"><div class="num">{{ results|length }}</div><div class="lbl">Jami topshiriqlar</div></div>
+        <div class="stat"><div class="num" style="color:#27ae60;">{{ results|selectattr('percentage','ge',55)|list|length }}</div><div class="lbl">O'tganlar (≥55%)</div></div>
+        <div class="stat"><div class="num" style="color:#e74c3c;">{{ results|selectattr('percentage','lt',55)|list|length }}</div><div class="lbl">O'tmaganlar</div></div>
       </div>
       {% endif %}
       <div class="export-row">
-        <div class="form-group" style="margin:0;min-width:180px;">
+        <div class="form-group" style="margin:0;min-width:200px;">
           <label>Kategoriya filtri</label>
           <select id="exp-cat">
             <option value="all">Barcha natijalar</option>
@@ -127,7 +157,7 @@ tr:hover td{background:#f8f9ff;}
         </div>
         <button class="btn btn-success" onclick="exportResults()" style="margin-top:18px;">📥 Excel Eksport</button>
       </div>
-      <div class="alert alert-error" id="exp-err">❌ Xatolik!</div>
+      <div class="alert alert-error" id="exp-err"></div>
       {% if results %}
       <table>
         <thead>
@@ -163,37 +193,48 @@ function showTab(name) {
   document.getElementById('tab-'+name).classList.add('active');
   event.target.classList.add('active');
 }
-function showAlert(id,dur=3000){
-  const el=document.getElementById(id); el.style.display='block';
+function showAlert(id,msg,dur=3500){
+  const el=document.getElementById(id);
+  if(msg) el.textContent=msg;
+  el.style.display='block';
   setTimeout(()=>el.style.display='none',dur);
 }
+
+async function saveSettings() {
+  const tl=document.getElementById('time_limit').value;
+  const qc=document.getElementById('question_count').value;
+  const res=await fetch('/teacher/save_settings',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({time_limit:tl,question_count:qc})});
+  const r=await res.json();
+  if(r.error) showAlert('set-err','❌ '+r.error);
+  else showAlert('set-ok','✅ Sozlamalar saqlandi!');
+}
+
 async function uploadTest() {
   const name=document.getElementById('test-name').value.trim();
   const file=document.getElementById('test-file').files[0];
-  if(!name||!file){
-    document.getElementById('up-err').textContent='❌ Test nomi va faylni kiriting!';
-    showAlert('up-err'); return;
-  }
+  if(!name||!file){showAlert('up-err','❌ Test nomi va faylni kiriting!');return;}
   const fd=new FormData();
   fd.append('name',name); fd.append('file',file);
   const res=await fetch('/teacher/upload_test',{method:'POST',body:fd});
   const r=await res.json();
-  if(r.error){document.getElementById('up-err').textContent='❌ '+r.error;showAlert('up-err');}
-  else{document.getElementById('up-ok').textContent='✅ '+r.message;showAlert('up-ok');setTimeout(()=>location.reload(),1500);}
+  if(r.error) showAlert('up-err','❌ '+r.error);
+  else{showAlert('up-ok','✅ '+r.message);setTimeout(()=>location.reload(),1500);}
 }
+
 async function deleteTest(name) {
   if(!confirm(`"${name}" faylini o'chirishni tasdiqlaysizmi?`)) return;
   const res=await fetch('/teacher/delete_test',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name})});
   const r=await res.json();
-  if(r.error){alert('❌ '+r.error);}else{location.reload();}
+  if(r.error) alert('❌ '+r.error); else location.reload();
 }
+
 async function exportResults() {
   const cat=document.getElementById('exp-cat').value;
   const res=await fetch('/teacher/export_results',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({category:cat})});
-  if(!res.ok){const r=await res.json();document.getElementById('exp-err').textContent='❌ '+r.error;showAlert('exp-err');return;}
+  if(!res.ok){const r=await res.json();showAlert('exp-err','❌ '+r.error);return;}
   const blob=await res.blob();
-  const url=window.URL.createObjectURL(blob);
-  const a=document.createElement('a');a.href=url;a.download='natijalar.xlsx';a.click();
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a'); a.href=url; a.download='natijalar.xlsx'; a.click();
 }
 </script>
 </body>

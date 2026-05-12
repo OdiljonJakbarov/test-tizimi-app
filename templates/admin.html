@@ -5,46 +5,44 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Administrator Paneli</title>
 <style>
-* { box-sizing: border-box; margin: 0; padding: 0; }
-body { font-family: 'Segoe UI', Arial, sans-serif; background: #f0f2f5; min-height: 100vh; }
-.header { background: linear-gradient(135deg, #1a3a6b, #2563b0); color: white; padding: 16px 28px; display: flex; justify-content: space-between; align-items: center; }
-.header h1 { font-size: 20px; }
-.header a { color: rgba(255,255,255,0.85); text-decoration: none; font-size: 14px; background: rgba(255,255,255,0.15); padding: 7px 14px; border-radius: 6px; }
-.main { max-width: 1100px; margin: 28px auto; padding: 0 16px; }
-.tabs { display: flex; gap: 8px; margin-bottom: 24px; flex-wrap: wrap; }
-.tab { padding: 10px 22px; border-radius: 8px; border: none; cursor: pointer; font-size: 14px; font-weight: 600; background: white; color: #666; transition: all 0.2s; box-shadow: 0 2px 6px rgba(0,0,0,0.08); }
-.tab.active { background: linear-gradient(135deg, #1a3a6b, #2563b0); color: white; }
-.panel { display: none; }
-.panel.active { display: block; }
-.card { background: white; border-radius: 12px; padding: 28px; box-shadow: 0 2px 12px rgba(0,0,0,0.08); margin-bottom: 20px; }
-.card h2 { font-size: 17px; color: #1a3a6b; margin-bottom: 20px; padding-bottom: 12px; border-bottom: 2px solid #f0f4ff; }
-.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
-.form-group { margin-bottom: 16px; }
-label { display: block; font-size: 13px; font-weight: 600; color: #444; margin-bottom: 6px; }
-input, select { width: 100%; padding: 10px 14px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 14px; outline: none; transition: border-color 0.2s; }
-input:focus, select:focus { border-color: #2563b0; }
-.btn { padding: 10px 22px; border: none; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; transition: opacity 0.2s; }
-.btn-primary { background: linear-gradient(135deg, #1a3a6b, #2563b0); color: white; }
-.btn-danger { background: #e74c3c; color: white; }
-.btn-success { background: #27ae60; color: white; }
-.btn:hover { opacity: 0.88; }
-.alert { padding: 12px 16px; border-radius: 8px; margin-top: 12px; font-size: 14px; display: none; }
-.alert-success { background: #eafaf1; color: #27ae60; border: 1px solid #a9dfbf; }
-.alert-error { background: #fdf2f2; color: #e74c3c; border: 1px solid #f5b7b1; }
-.file-list { }
-.file-item { display: flex; justify-content: space-between; align-items: center; padding: 14px 18px; border: 2px solid #e8ecf0; border-radius: 10px; margin-bottom: 10px; }
-.file-item .name { font-weight: 600; color: #1a3a6b; }
-.file-item .meta { font-size: 12px; color: #888; margin-top: 3px; }
-table { width: 100%; border-collapse: collapse; font-size: 14px; }
-th { background: #1a3a6b; color: white; padding: 12px 14px; text-align: left; }
-td { padding: 10px 14px; border-bottom: 1px solid #eee; }
-tr:hover td { background: #f8f9ff; }
-.pct-good { color: #27ae60; font-weight: 700; }
-.pct-mid { color: #f39c12; font-weight: 700; }
-.pct-low { color: #e74c3c; font-weight: 700; }
-.export-section { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; margin-bottom: 20px; }
-.badge { display: inline-block; background: #e8f0fe; color: #2563b0; font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 10px; }
-.hint { font-size: 12px; color: #999; margin-top: 6px; }
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Segoe UI',Arial,sans-serif;background:#f0f2f5;min-height:100vh;}
+.header{background:linear-gradient(135deg,#1a3a6b,#2563b0);color:white;padding:16px 28px;display:flex;justify-content:space-between;align-items:center;}
+.header h1{font-size:20px;font-weight:700;}
+.header a{color:rgba(255,255,255,.85);text-decoration:none;font-size:13px;background:rgba(255,255,255,.15);padding:7px 14px;border-radius:6px;}
+.main{max-width:960px;margin:30px auto;padding:0 16px;}
+.card{background:white;border-radius:14px;padding:30px;box-shadow:0 2px 14px rgba(0,0,0,.08);margin-bottom:20px;}
+.card h2{font-size:17px;color:#1a3a6b;margin-bottom:20px;padding-bottom:12px;border-bottom:2px solid #f0f4ff;}
+.form-group{margin-bottom:16px;}
+label{display:block;font-size:13px;font-weight:600;color:#444;margin-bottom:5px;}
+input{width:100%;padding:10px 14px;border:2px solid #e0e0e0;border-radius:8px;font-size:14px;outline:none;transition:border-color .2s;}
+input:focus{border-color:#2563b0;}
+.btn{padding:10px 22px;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;transition:opacity .2s;}
+.btn-primary{background:linear-gradient(135deg,#1a3a6b,#2563b0);color:white;}
+.btn-danger{background:#e74c3c;color:white;}
+.btn-warn{background:#f39c12;color:white;}
+.btn-ok{background:#27ae60;color:white;}
+.btn:hover{opacity:.88;}
+.alert{padding:11px 15px;border-radius:8px;margin-top:12px;font-size:13px;display:none;}
+.alert-success{background:#eafaf1;color:#27ae60;border:1px solid #a9dfbf;}
+.alert-error{background:#fdf2f2;color:#e74c3c;border:1px solid #f5b7b1;}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+/* TEACHERS TABLE */
+.t-table{width:100%;border-collapse:collapse;font-size:14px;}
+.t-table th{background:#1a3a6b;color:white;padding:11px 14px;text-align:left;font-weight:600;}
+.t-table td{padding:11px 14px;border-bottom:1px solid #f0f0f0;vertical-align:middle;}
+.t-table tr:hover td{background:#f8f9ff;}
+.badge-active{background:#eafaf1;color:#27ae60;padding:3px 10px;border-radius:12px;font-size:12px;font-weight:700;}
+.badge-blocked{background:#fdf2f2;color:#e74c3c;padding:3px 10px;border-radius:12px;font-size:12px;font-weight:700;}
+.actions{display:flex;gap:6px;}
+.actions .btn{padding:5px 12px;font-size:12px;}
+.stat-row{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:24px;}
+.stat{background:#f0f4ff;border-radius:10px;padding:18px;text-align:center;}
+.stat .num{font-size:32px;font-weight:800;color:#1a3a6b;}
+.stat .lbl{font-size:12px;color:#888;margin-top:4px;}
+.link-tip{font-size:13px;color:#666;margin-top:16px;background:#f8f9fa;padding:12px;border-radius:8px;}
+.link-tip a{color:#2563b0;font-weight:600;}
+code{background:#f0f4ff;padding:2px 7px;border-radius:4px;font-size:12px;color:#1a3a6b;}
 </style>
 </head>
 <body>
@@ -54,298 +52,128 @@ tr:hover td { background: #f8f9ff; }
 </div>
 
 <div class="main">
-  <div class="tabs">
-    <button class="tab active" onclick="showTab('settings')">⚙️ Sozlamalar</button>
-    <button class="tab" onclick="showTab('tests')">📁 Test Fayllari</button>
-    <button class="tab" onclick="showTab('results')">📊 Natijalar</button>
-    <button class="tab" onclick="showTab('teachers')">👨‍🏫 O'qituvchilar</button>
+
+  <!-- STATISTIKA -->
+  <div class="stat-row">
+    <div class="stat">
+      <div class="num">{{ teachers|length }}</div>
+      <div class="lbl">Jami o'qituvchilar</div>
+    </div>
+    <div class="stat">
+      <div class="num" style="color:#27ae60;">{{ teachers|selectattr('is_active','eq',1)|list|length }}</div>
+      <div class="lbl">Faol</div>
+    </div>
+    <div class="stat">
+      <div class="num" style="color:#e74c3c;">{{ teachers|selectattr('is_active','eq',0)|list|length }}</div>
+      <div class="lbl">Bloklangan</div>
+    </div>
   </div>
 
-  <!-- SETTINGS PANEL -->
-  <div id="tab-settings" class="panel active">
-    <div class="card">
-      <h2>🔧 Test Sozlamalari</h2>
+  <!-- PAROL O'ZGARTIRISH -->
+  <div class="card">
+    <h2>🔑 Administrator Paroli</h2>
+    <div class="form-row">
       <div class="form-group">
-        <label>Administrator paroli (kirish uchun)</label>
-        <input type="password" id="admin-pass" placeholder="Parolingizni kiriting..." />
-      </div>
-      <div class="form-row">
-        <div class="form-group">
-          <label>⏱ Vaqt limiti (daqiqada)</label>
-          <input type="number" id="time_limit" value="{{ config.time_limit }}" min="1" max="300" />
-          <div class="hint">Har bir test uchun ajratiladigan maksimal vaqt</div>
-        </div>
-        <div class="form-group">
-          <label>📋 Savollar soni (ta)</label>
-          <input type="number" id="question_count" value="{{ config.question_count }}" min="1" max="200" />
-          <div class="hint">Foydalanuvchiga beriladigan savollar soni</div>
-        </div>
+        <label>Joriy parol</label>
+        <input type="password" id="cur-pass" placeholder="Joriy parolingiz"/>
       </div>
       <div class="form-group">
-        <label>🔑 Yangi parol (o'zgartirish uchun)</label>
-        <input type="password" id="new_password" placeholder="Ixtiyoriy — bo'sh qoldiring" />
+        <label>Yangi parol</label>
+        <input type="password" id="new-pass" placeholder="Yangi parol (ixtiyoriy)"/>
       </div>
-      <button class="btn btn-primary" onclick="saveConfig()">💾 Saqlash</button>
-      <div class="alert alert-success" id="cfg-ok">✅ Sozlamalar saqlandi!</div>
-      <div class="alert alert-error" id="cfg-err">❌ Xatolik: Parol noto'g'ri!</div>
     </div>
+    <button class="btn btn-primary" onclick="saveConfig()">💾 Saqlash</button>
+    <div class="alert alert-success" id="cfg-ok">✅ Saqlandi!</div>
+    <div class="alert alert-error" id="cfg-err">❌ Parol noto'g'ri!</div>
   </div>
 
-  <!-- TESTS PANEL -->
-  <div id="tab-tests" class="panel">
-    <div class="card">
-      <h2>📤 Yangi Test Fayl Yuklash</h2>
-      <p style="font-size:13px;color:#666;margin-bottom:16px;">
-        XLSX fayl tuzilishi: <strong>1-ustun</strong> savol | <strong>2-ustun</strong> to'g'ri javob | <strong>3,4,5-ustunlar</strong> noto'g'ri javoblar
-      </p>
-      <div class="form-group">
-        <label>Administrator paroli</label>
-        <input type="password" id="up-pass" placeholder="Parolingizni kiriting..." />
-      </div>
-      <div class="form-row">
-        <div class="form-group">
-          <label>Test nomi (masalan: 1-ON, 2-ON, YaN)</label>
-          <input type="text" id="test-name" placeholder="Masalan: 1-ON_Informatika" />
-        </div>
-        <div class="form-group">
-          <label>XLSX fayl</label>
-          <input type="file" id="test-file" accept=".xlsx" />
-        </div>
-      </div>
-      <button class="btn btn-success" onclick="uploadTest()">📤 Yuklash</button>
-      <div class="alert alert-success" id="up-ok">✅ Fayl muvaffaqiyatli yuklandi!</div>
-      <div class="alert alert-error" id="up-err">❌ Xatolik!</div>
-    </div>
-
-    <div class="card">
-      <h2>📂 Yuklangan Test Fayllar</h2>
-      <div class="file-list" id="file-list">
-        {% for cat in categories %}
-        <div class="file-item" id="fi-{{ loop.index }}">
-          <div>
-            <div class="name">📄 {{ cat }}</div>
-            <div class="meta">tests/{{ cat }}.xlsx</div>
-          </div>
-          <button class="btn btn-danger" onclick="deleteTest('{{ cat }}')">🗑 O'chirish</button>
-        </div>
-        {% else %}
-        <p style="color:#999;text-align:center;padding:20px;">Hozircha test fayllari yo'q</p>
-        {% endfor %}
-      </div>
-    </div>
-  </div>
-
-  <!-- RESULTS PANEL -->
-  <div id="tab-results" class="panel">
-    <div class="card">
-      <h2>📊 Natijalar va Export</h2>
-      <div class="export-section">
-        <div class="form-group" style="margin:0; min-width:200px;">
-          <label>Kategoriya filtri</label>
-          <select id="exp-cat">
-            <option value="all">Barcha natijalar</option>
-            {% for cat in categories %}
-            <option value="{{ cat }}">{{ cat }}</option>
-            {% endfor %}
-          </select>
-        </div>
-        <div class="form-group" style="margin:0;">
-          <label>Administrator paroli</label>
-          <input type="password" id="exp-pass" placeholder="Parol..." style="width:180px;" />
-        </div>
-        <div style="padding-top:20px;">
-          <button class="btn btn-success" onclick="exportResults()">📥 XLSX Eksport</button>
-        </div>
-      </div>
-      <div class="alert alert-error" id="exp-err">❌ Xatolik!</div>
-
-      {% if results %}
-      <table>
-        <thead>
-          <tr>
-            <th>#</th><th>F.I.O.</th><th>Guruh</th><th>Kategoriya</th><th>Jami</th><th>To'g'ri</th><th>Xato</th><th>Foiz</th><th>Sana</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for r in results | sort(attribute='date', reverse=True) %}
-          <tr>
-            <td>{{ loop.index }}</td>
-            <td><strong>{{ r.fio }}</strong></td>
-            <td>{{ r.group }}</td>
-            <td><span class="badge">{{ r.category }}</span></td>
-            <td>{{ r.total }}</td>
-            <td style="color:#27ae60;font-weight:700;">{{ r.correct }}</td>
-            <td style="color:#e74c3c;">{{ r.wrong }}</td>
-            <td class="{{ 'pct-good' if r.percentage >= 85 else ('pct-mid' if r.percentage >= 55 else 'pct-low') }}">{{ r.percentage }}%</td>
-            <td>{{ r.date }}</td>
-          </tr>
-          {% endfor %}
-        </tbody>
-      </table>
-      {% else %}
-      <p style="color:#999;text-align:center;padding:30px;">Hozircha natijalar yo'q</p>
-      {% endif %}
-    </div>
-  </div>
-
-  <!-- TEACHERS PANEL -->
-  <div id="tab-teachers" class="panel">
-    <div class="card">
-      <h2>👨‍🏫 Ro'yxatdan O'tgan O'qituvchilar</h2>
-      {% if teachers %}
-      <table>
-        <thead>
-          <tr><th>#</th><th>Ism</th><th>Login</th><th>Email</th><th>Ro'yxatdan</th><th>Holat</th><th>Amallar</th></tr>
-        </thead>
-        <tbody>
-          {% for t in teachers %}
-          <tr>
-            <td>{{ loop.index }}</td>
-            <td><strong>{{ t.name }}</strong></td>
-            <td><code>{{ t.username }}</code></td>
-            <td>{{ t.email or '—' }}</td>
-            <td>{{ t.created_at }}</td>
-            <td>
+  <!-- O'QITUVCHILAR -->
+  <div class="card">
+    <h2>👨‍🏫 O'qituvchilar Ro'yxati</h2>
+    {% if teachers %}
+    <table class="t-table">
+      <thead>
+        <tr><th>#</th><th>Ism</th><th>Login</th><th>Email</th><th>Vaqt / Savollar</th><th>Ro'yxatdan</th><th>Holat</th><th>Amallar</th></tr>
+      </thead>
+      <tbody>
+        {% for t in teachers %}
+        <tr>
+          <td>{{ loop.index }}</td>
+          <td><strong>{{ t.name }}</strong></td>
+          <td><code>{{ t.username }}</code></td>
+          <td style="color:#666;">{{ t.email or '—' }}</td>
+          <td style="text-align:center;">{{ t.time_limit or 30 }} daq / {{ t.question_count or 10 }} ta</td>
+          <td style="color:#888;font-size:13px;">{{ t.created_at[:10] if t.created_at else '—' }}</td>
+          <td>
+            {% if t.is_active %}
+            <span class="badge-active">● Faol</span>
+            {% else %}
+            <span class="badge-blocked">● Bloklangan</span>
+            {% endif %}
+          </td>
+          <td>
+            <div class="actions">
               {% if t.is_active %}
-              <span style="color:#27ae60;font-weight:700;">● Faol</span>
+              <button class="btn btn-warn" onclick="toggleTeacher('{{ t.id }}', 0)">🔒 Bloklash</button>
               {% else %}
-              <span style="color:#e74c3c;font-weight:700;">● Bloklangan</span>
+              <button class="btn btn-ok" onclick="toggleTeacher('{{ t.id }}', 1)">✅ Ochish</button>
               {% endif %}
-            </td>
-            <td style="display:flex;gap:6px;">
-              <button class="btn" style="padding:5px 12px;font-size:12px;background:{% if t.is_active %}#f39c12{% else %}#27ae60{% endif %};color:white;"
-                onclick="toggleTeacher('{{ t.id }}', {{ 0 if t.is_active else 1 }})">
-                {% if t.is_active %}🔒 Bloklash{% else %}✅ Faollashtirish{% endif %}
-              </button>
-              <button class="btn btn-danger" style="padding:5px 12px;font-size:12px;"
-                onclick="deleteTeacher('{{ t.id }}', '{{ t.name }}')">🗑</button>
-            </td>
-          </tr>
-          {% endfor %}
-        </tbody>
-      </table>
-      {% else %}
-      <p style="color:#999;text-align:center;padding:30px;">Hozircha o'qituvchilar ro'yxatdan o'tmagan</p>
-      {% endif %}
-      <div style="margin-top:16px;font-size:13px;color:#666;">
-        O'qituvchi kabineti: <a href="/teacher/login" target="_blank" style="color:#2563b0;">/teacher/login</a>
-      </div>
+              <button class="btn btn-danger" onclick="deleteTeacher('{{ t.id }}', '{{ t.name }}')">🗑</button>
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <p style="color:#999;text-align:center;padding:30px;">Hozircha o'qituvchilar ro'yxatdan o'tmagan</p>
+    {% endif %}
+
+    <div class="link-tip">
+      📌 O'qituvchilar quyidagi manzillar orqali kiradi:<br><br>
+      Kirish: <a href="/teacher/login" target="_blank">/teacher/login</a> &nbsp;|&nbsp;
+      Ro'yxatdan o'tish: <a href="/teacher/register" target="_blank">/teacher/register</a>
     </div>
   </div>
 
 </div>
 
 <script>
-function showTab(name) {
-  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
-  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-  document.getElementById('tab-' + name).classList.add('active');
-  event.target.classList.add('active');
+function getAdminPass() {
+  const p = document.getElementById('cur-pass').value;
+  if(!p){ alert('Avval joriy parolni kiriting!'); return null; }
+  return p;
 }
-
-function showAlert(id, duration=3000) {
-  const el = document.getElementById(id);
-  el.style.display = 'block';
-  setTimeout(() => el.style.display = 'none', duration);
+function showAlert(id,dur=3000){
+  const el=document.getElementById(id); el.style.display='block';
+  setTimeout(()=>el.style.display='none',dur);
 }
 
 async function saveConfig() {
-  const data = {
-    password: document.getElementById('admin-pass').value,
-    time_limit: document.getElementById('time_limit').value,
-    question_count: document.getElementById('question_count').value,
-    new_password: document.getElementById('new_password').value
-  };
-  const res = await fetch('/admin/save_config', {
-    method: 'POST', headers: {'Content-Type': 'application/json'},
-    body: JSON.stringify(data)
-  });
-  const r = await res.json();
-  showAlert(r.error ? 'cfg-err' : 'cfg-ok');
-}
-
-async function uploadTest() {
-  const name = document.getElementById('test-name').value.trim();
-  const file = document.getElementById('test-file').files[0];
-  const pass = document.getElementById('up-pass').value;
-  
-  if (!name || !file) { 
-    document.getElementById('up-err').textContent = '❌ Test nomi va faylni kiriting!';
-    showAlert('up-err'); return; 
-  }
-  
-  const fd = new FormData();
-  fd.append('name', name);
-  fd.append('file', file);
-  fd.append('password', pass);
-  
-  const res = await fetch('/admin/upload_test', { method: 'POST', body: fd });
-  const r = await res.json();
-  if (r.error) {
-    document.getElementById('up-err').textContent = '❌ ' + r.error;
-    showAlert('up-err');
-  } else {
-    document.getElementById('up-ok').textContent = '✅ ' + r.message;
-    showAlert('up-ok');
-    setTimeout(() => location.reload(), 1500);
-  }
-}
-
-async function deleteTest(name) {
-  const pass = prompt('O\'chirish uchun administrator parolini kiriting:');
-  if (!pass) return;
-  if (!confirm(`"${name}" faylini o'chirishni tasdiqlaysizmi?`)) return;
-  
-  const res = await fetch('/admin/delete_test', {
-    method: 'POST', headers: {'Content-Type': 'application/json'},
-    body: JSON.stringify({name, password: pass})
-  });
-  const r = await res.json();
-  if (r.error) { alert('❌ ' + r.error); }
-  else { location.reload(); }
-}
-
-async function exportResults() {
-  const cat = document.getElementById('exp-cat').value;
-  const pass = document.getElementById('exp-pass').value;
-  
-  const res = await fetch('/admin/export_results', {
-    method: 'POST', headers: {'Content-Type': 'application/json'},
-    body: JSON.stringify({category: cat, password: pass})
-  });
-  
-  if (!res.ok) {
-    const r = await res.json();
-    document.getElementById('exp-err').textContent = '❌ ' + r.error;
-    showAlert('exp-err'); return;
-  }
-  
-  const blob = await res.blob();
-  const url = window.URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url; a.download = 'natijalar.xlsx'; a.click();
+  const p=document.getElementById('cur-pass').value;
+  const np=document.getElementById('new-pass').value;
+  if(!p){alert('Parolni kiriting!');return;}
+  const res=await fetch('/admin/save_config',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({password:p,new_password:np})});
+  const r=await res.json();
+  if(r.error) showAlert('cfg-err');
+  else showAlert('cfg-ok');
 }
 
 async function toggleTeacher(id, active) {
-  const pass = prompt('Administrator parolini kiriting:');
+  const pass=prompt('Administrator parolini kiriting:');
   if(!pass) return;
-  const res = await fetch('/admin/toggle_teacher', {
-    method:'POST', headers:{'Content-Type':'application/json'},
-    body: JSON.stringify({id, active, password: pass})
-  });
-  const r = await res.json();
-  if(r.error){ alert('❌ '+r.error); } else { location.reload(); }
+  const res=await fetch('/admin/toggle_teacher',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id,active,password:pass})});
+  const r=await res.json();
+  if(r.error){alert('❌ '+r.error);}else{location.reload();}
 }
+
 async function deleteTeacher(id, name) {
-  const pass = prompt('Administrator parolini kiriting:');
+  const pass=prompt('Administrator parolini kiriting:');
   if(!pass) return;
-  if(!confirm(`"${name}" o'qituvchisini o'chirishni tasdiqlaysizmi?`)) return;
-  const res = await fetch('/admin/delete_teacher', {
-    method:'POST', headers:{'Content-Type':'application/json'},
-    body: JSON.stringify({id, password: pass})
-  });
-  const r = await res.json();
-  if(r.error){ alert('❌ '+r.error); } else { location.reload(); }
+  if(!confirm(`"${name}" o'qituvchisini o'chirishni tasdiqlaysizmi?\nUning barcha test fayllari ham o'chadi!`)) return;
+  const res=await fetch('/admin/delete_teacher',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id,password:pass})});
+  const r=await res.json();
+  if(r.error){alert('❌ '+r.error);}else{location.reload();}
 }
 </script>
 </body>
