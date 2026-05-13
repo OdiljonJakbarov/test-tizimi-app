@@ -2,316 +2,466 @@
 <html lang="uz">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Test — {{ fio }}</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Test</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0;}
-body{font-family:'Segoe UI',Arial,sans-serif;background:#f0f4ff;min-height:100vh;user-select:none;-webkit-user-select:none;}
-/* ── SCREENSHOT HIMOYA ── */
-@media print{body{display:none!important;}}
-.no-screenshot-overlay{display:none;position:fixed;inset:0;background:#1a3a6b;z-index:99999;align-items:center;justify-content:center;flex-direction:column;color:white;font-size:22px;font-weight:700;text-align:center;padding:40px;}
-.no-screenshot-overlay.show{display:flex;}
+html,body{
+  font-family:'Segoe UI',Arial,sans-serif;
+  background:#f0f4ff;min-height:100vh;
+  user-select:none;-webkit-user-select:none;-ms-user-select:none;
+  -webkit-touch-callout:none;
+}
+
+/* ── HIMOYA QOPLAMA ── */
+.guard{
+  display:none;position:fixed;inset:0;
+  background:#05101f;z-index:2147483647;
+  align-items:center;justify-content:center;
+  flex-direction:column;color:white;text-align:center;padding:30px;
+}
+.guard.on{display:flex;}
+.guard-icon{font-size:64px;margin-bottom:18px;}
+.guard-title{font-size:22px;font-weight:800;margin-bottom:10px;}
+.guard-sub{font-size:14px;opacity:.65;line-height:1.6;}
+
 /* ── HEADER ── */
-.header{background:linear-gradient(135deg,#1a3a6b,#2563b0);color:white;padding:14px 24px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;}
-.header-info .name{font-weight:700;font-size:16px;}
-.header-info div{font-size:13px;}
-.timer{background:rgba(255,255,255,.2);border-radius:8px;padding:8px 16px;font-size:22px;font-weight:700;min-width:90px;text-align:center;}
-.timer.warning{background:#e74c3c;animation:pulse 1s infinite;}
-@keyframes pulse{0%,100%{opacity:1}50%{opacity:.7}}
-.progress-bar{background:#e0e0e0;height:8px;}
-.progress-fill{background:linear-gradient(90deg,#1a3a6b,#2563b0);height:100%;transition:width .3s;}
+.header{background:linear-gradient(135deg,#1a3a6b,#2563b0);color:white;padding:13px 20px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;}
+.h-info .name{font-weight:700;font-size:15px;}
+.h-info .meta{font-size:12px;opacity:.8;margin-top:2px;}
+.timer{background:rgba(255,255,255,.18);border-radius:8px;padding:7px 14px;font-size:20px;font-weight:700;min-width:82px;text-align:center;font-variant-numeric:tabular-nums;}
+.timer.warn{background:#c0392b;animation:pulse 1s infinite;}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.6}}
+.progress-bar{background:#c8d4f0;height:6px;}
+.progress-fill{background:linear-gradient(90deg,#1a3a6b,#2563b0);height:100%;transition:width .35s;}
+
 /* ── CARD ── */
-.main{max-width:720px;margin:30px auto;padding:0 16px;}
-.question-card{background:white;border-radius:14px;padding:32px;box-shadow:0 4px 20px rgba(0,0,0,.1);margin-bottom:20px;}
-.q-num{font-size:13px;color:#888;margin-bottom:10px;}
-.q-text{font-size:17px;font-weight:600;color:#1a3a6b;line-height:1.6;margin-bottom:24px;}
-/* HTML content inside questions */
-.q-text img{max-width:100%;border-radius:6px;margin:8px 0;}
-.q-text table{border-collapse:collapse;width:100%;margin:8px 0;}
-.q-text table td,.q-text table th{border:1px solid #ccc;padding:6px 10px;font-size:14px;}
-.q-text code{background:#f4f4f4;padding:2px 6px;border-radius:4px;font-family:monospace;font-size:13px;}
-.q-text pre{background:#f4f4f4;padding:12px;border-radius:8px;overflow-x:auto;font-size:13px;margin:8px 0;}
+.main{max-width:700px;margin:22px auto;padding:0 14px;}
+.q-card{background:white;border-radius:14px;box-shadow:0 4px 20px rgba(0,0,0,.1);overflow:hidden;margin-bottom:14px;}
+.q-top{padding:20px 22px 14px;}
+.q-num{font-size:12px;color:#aaa;margin-bottom:10px;font-weight:600;letter-spacing:.5px;}
+
+/* Canvas — savolni chizadi, skrinshot bo'lmasin */
+canvas#qCanvas{display:block;width:100%;}
+
 /* ── OPTIONS ── */
-.options{display:flex;flex-direction:column;gap:12px;}
-.option{display:flex;align-items:flex-start;gap:12px;padding:14px 18px;border:2px solid #e0e0e0;border-radius:10px;cursor:pointer;transition:all .2s;font-size:15px;line-height:1.5;}
-.option:hover:not(.disabled){border-color:#2563b0;background:#f0f4ff;}
-.option.selected{border-color:#2563b0;background:#e8f0fe;}
-.option.correct{border-color:#27ae60;background:#eafaf1;color:#27ae60;font-weight:600;}
-.option.wrong{border-color:#e74c3c;background:#fdf2f2;color:#e74c3c;}
-.option.disabled{cursor:default;}
-.opt-letter{width:32px;height:32px;border-radius:50%;background:#e0e0e0;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;flex-shrink:0;margin-top:2px;}
-.option.selected .opt-letter{background:#2563b0;color:white;}
-.option.correct .opt-letter{background:#27ae60;color:white;}
-.option.wrong .opt-letter{background:#e74c3c;color:white;}
-/* HTML in options */
-.opt-text img{max-width:100%;border-radius:4px;}
-.opt-text code{background:#f4f4f4;padding:1px 5px;border-radius:3px;font-family:monospace;font-size:13px;}
-/* ── BUTTONS ── */
-.nav-btns{display:flex;justify-content:flex-end;margin-top:24px;}
-.btn{padding:12px 28px;border:none;border-radius:8px;font-size:15px;font-weight:600;cursor:pointer;transition:opacity .2s;}
+.opts{padding:14px 18px 18px;}
+.option{
+  display:flex;align-items:flex-start;gap:11px;
+  padding:12px 15px;border:2px solid #e0e8f0;
+  border-radius:10px;cursor:pointer;margin-bottom:9px;
+  transition:border-color .15s,background .15s;
+}
+.option:last-child{margin-bottom:0;}
+.option:hover:not(.dis){border-color:#2563b0;background:#f0f4ff;}
+.option.sel{border-color:#2563b0;background:#e8f0fe;}
+.option.ok {border-color:#27ae60;background:#eafaf1;}
+.option.err{border-color:#e74c3c;background:#fdf2f2;}
+.option.dis{cursor:default;}
+.opt-ltr{width:29px;height:29px;border-radius:50%;background:#e8ecf5;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:12px;flex-shrink:0;margin-top:1px;}
+.option.sel .opt-ltr{background:#2563b0;color:#fff;}
+.option.ok  .opt-ltr{background:#27ae60;color:#fff;}
+.option.err .opt-ltr{background:#e74c3c;color:#fff;}
+/* Javob matni — textContent ishlatamiz, HTML yo'q */
+.opt-txt{font-size:14px;line-height:1.55;color:#222;word-break:break-word;}
+.option.ok  .opt-txt{color:#1a6b3a;font-weight:600;}
+.option.err .opt-txt{color:#b03030;}
+
+/* ── FEEDBACK ── */
+.feedback{margin:4px 18px 0;padding:10px 14px;border-radius:8px;font-size:13px;font-weight:600;display:none;line-height:1.5;word-break:break-word;}
+.feedback.ok {background:#eafaf1;color:#27ae60;border:1px solid #a9dfbf;}
+.feedback.err{background:#fdf2f2;color:#c0392b;border:1px solid #f5b7b1;}
+
+/* ── NAV ── */
+.nav{padding:14px 18px 18px;display:flex;justify-content:flex-end;}
+.btn{padding:11px 26px;border:none;border-radius:9px;font-size:14px;font-weight:700;cursor:pointer;}
 .btn-next{background:linear-gradient(135deg,#1a3a6b,#2563b0);color:white;}
-.btn-next:disabled{opacity:.5;cursor:not-allowed;}
-.btn-finish{background:linear-gradient(135deg,#27ae60,#2ecc71);color:white;}
-.feedback{padding:12px 18px;border-radius:8px;font-size:14px;font-weight:600;margin-top:16px;display:none;line-height:1.5;}
-.feedback.correct{background:#eafaf1;color:#27ae60;border:1px solid #a9dfbf;}
-.feedback.wrong{background:#fdf2f2;color:#e74c3c;border:1px solid #f5b7b1;}
+.btn-fin {background:linear-gradient(135deg,#27ae60,#2ecc71);color:white;}
+.btn:disabled{opacity:.4;cursor:not-allowed;}
+
 /* ── RESULT ── */
-.result-card{background:white;border-radius:14px;padding:40px;box-shadow:0 4px 20px rgba(0,0,0,.1);text-align:center;display:none;}
-.result-icon{font-size:60px;margin-bottom:16px;}
-.result-pct{font-size:56px;font-weight:800;margin:10px 0;}
-.result-pct.excellent{color:#27ae60;}.result-pct.good{color:#f39c12;}.result-pct.poor{color:#e74c3c;}
-.result-grade{font-size:20px;font-weight:700;margin-bottom:20px;}
-.result-stats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin:24px 0;}
-.stat-box{background:#f8f9fa;border-radius:10px;padding:16px;}
-.stat-box .num{font-size:28px;font-weight:800;}
-.stat-box .lbl{font-size:12px;color:#888;margin-top:4px;}
-.stat-box.correct .num{color:#27ae60;}.stat-box.wrong .num{color:#e74c3c;}.stat-box.total .num{color:#2563b0;}
-.result-info{color:#666;font-size:14px;margin-bottom:24px;}
-.btn-home{display:inline-block;padding:13px 36px;background:linear-gradient(135deg,#1a3a6b,#2563b0);color:white;border-radius:8px;text-decoration:none;font-weight:600;font-size:15px;}
+.result-card{background:white;border-radius:14px;padding:36px 24px;box-shadow:0 4px 20px rgba(0,0,0,.1);text-align:center;display:none;}
+.r-icon{font-size:56px;margin-bottom:10px;}
+.r-pct{font-size:50px;font-weight:800;margin:8px 0;}
+.r-pct.ex{color:#27ae60;}.r-pct.gd{color:#f39c12;}.r-pct.bd{color:#e74c3c;}
+.r-grade{font-size:17px;font-weight:700;margin-bottom:16px;}
+.r-stats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin:18px 0;}
+.r-stat{background:#f8f9fa;border-radius:10px;padding:13px;}
+.r-stat .n{font-size:24px;font-weight:800;}
+.r-stat .l{font-size:11px;color:#888;margin-top:3px;}
+.r-info{color:#888;font-size:13px;margin-bottom:18px;line-height:1.7;}
+.btn-home{display:inline-block;padding:12px 32px;background:linear-gradient(135deg,#1a3a6b,#2563b0);color:white;border-radius:9px;text-decoration:none;font-weight:700;font-size:14px;}
+
+@media print{body{display:none!important;visibility:hidden!important;}}
 </style>
 </head>
 <body>
 
-<!-- Screenshot olinganda ko'rinadigan qoplama -->
-<div class="no-screenshot-overlay" id="protectOverlay">
-  🚫<br>
-  Ekran suratga olish taqiqlangan!<br>
-  <span style="font-size:16px;font-weight:400;margin-top:12px;opacity:.8">Screenshot is not allowed during the test</span>
+<!-- HIMOYA QOPLAMA: ekran o'chirilganda yoki focus ketganda to'liq qoplaydi -->
+<div class="guard" id="guard">
+  <div class="guard-icon">🚫</div>
+  <div class="guard-title">Ekran suratga olish taqiqlangan!</div>
+  <div class="guard-sub">
+    Screenshot is not allowed during the test.<br>
+    Экранды суратга олиш тақиқланган.
+  </div>
 </div>
 
 <div class="header">
-  <div class="header-info">
+  <div class="h-info">
     <div class="name">👤 {{ fio }}</div>
-    <div>Guruh: {{ group }} | {{ category }}</div>
+    <div class="meta">Guruh: {{ group }} | {{ category }}{% if teacher_name %} | 👨‍🏫 {{ teacher_name }}{% endif %}</div>
   </div>
   <div class="timer" id="timer">--:--</div>
 </div>
 <div class="progress-bar"><div class="progress-fill" id="progress" style="width:0%"></div></div>
 
 <div class="main">
-  <div class="question-card" id="q-card">
-    <div class="q-num" id="q-num">Savol 1 / {{ total }}</div>
-    <!-- innerHTML bilan render bo'ladi — HTML savollar uchun -->
-    <div class="q-text" id="q-text">Yuklanmoqda...</div>
-    <div class="options" id="options"></div>
+  <div class="q-card" id="qCard">
+    <div class="q-top">
+      <div class="q-num" id="qNum">SAVOL 1 / {{ total }}</div>
+      <!-- Canvas: savol matni rasm sifatida chiziladi, nusxa olib bo'lmaydi -->
+      <canvas id="qCanvas"></canvas>
+    </div>
+    <div class="opts" id="options"></div>
     <div class="feedback" id="feedback"></div>
-    <div class="nav-btns">
-      <button class="btn btn-next" id="btn-next" onclick="nextQuestion()" disabled>Keyingisi ›</button>
+    <div class="nav">
+      <button class="btn btn-next" id="btnNext" onclick="nextQ()" disabled>Keyingisi ›</button>
     </div>
   </div>
 
-  <div class="result-card" id="result-card">
-    <div class="result-icon" id="r-icon">🎉</div>
-    <div style="font-size:20px;color:#888;margin-bottom:4px;">Natija</div>
-    <div class="result-pct" id="r-pct">0%</div>
-    <div class="result-grade" id="r-grade"></div>
-    <div class="result-stats">
-      <div class="stat-box total"><div class="num" id="r-total">0</div><div class="lbl">Jami savollar</div></div>
-      <div class="stat-box correct"><div class="num" id="r-correct">0</div><div class="lbl">To'g'ri javob</div></div>
-      <div class="stat-box wrong"><div class="num" id="r-wrong">0</div><div class="lbl">Xato javob</div></div>
+  <div class="result-card" id="resultCard">
+    <div class="r-icon" id="rIcon">🎉</div>
+    <div style="font-size:17px;color:#aaa;margin-bottom:4px;">Natija</div>
+    <div class="r-pct" id="rPct">0%</div>
+    <div class="r-grade" id="rGrade"></div>
+    <div class="r-stats">
+      <div class="r-stat"><div class="n" id="rTotal" style="color:#2563b0">0</div><div class="l">Jami savollar</div></div>
+      <div class="r-stat"><div class="n" id="rCorrect" style="color:#27ae60">0</div><div class="l">To'g'ri javob</div></div>
+      <div class="r-stat"><div class="n" id="rWrong" style="color:#e74c3c">0</div><div class="l">Xato javob</div></div>
     </div>
-    <div class="result-info" id="r-info"></div>
+    <div class="r-info" id="rInfo"></div>
     <a href="/" class="btn-home">🏠 Bosh sahifaga qaytish</a>
   </div>
 </div>
 
 <script>
 const TOKEN = '{{ token }}';
-let currentIdx=0, totalQ={{ total }}, timeLeft={{ time_limit }};
-let answered=false, finished=false, timerInterval;
-const LETTERS=['A','B','C','D','E'];
+let idx=0, total={{ total }}, timeLeft={{ time_limit }};
+let answered=false, finished=false, clockId;
+const LETTERS = ['A','B','C','D','E'];
 
-// ── SCREENSHOT HIMOYA ─────────────────────────────────────
-(function() {
-  // 1. PrintScreen tugmasi bosilganda ekranni yopish
-  document.addEventListener('keyup', function(e) {
+// ═══════════════════════════════════════════════════════
+// 1. MATNNI ESCAPE QILISH
+// Barcha HTML teglar oddiy matn sifatida ko'rsatiladi.
+// <b>matn</b> → ekranda: <b>matn</b> (teg ko'rinadi)
+// ═══════════════════════════════════════════════════════
+function escapeText(str) {
+  // str ni satr sifatida olamiz
+  str = String(str == null ? '' : str);
+  // Hech qanday HTML parse yo'q — faqat maxsus belgilarni ko'rsatamiz
+  // innerHTML ishlatmaymiz — faqat textContent
+  return str;
+  // textContent ga berganda brauzer o'zi '<' ni '&lt;' ga aylantiradi
+}
+
+// ═══════════════════════════════════════════════════════
+// 2. SCREENSHOT HIMOYA
+// ═══════════════════════════════════════════════════════
+let guardHoldTimer = null;
+const guardEl = document.getElementById('guard');
+
+function showGuard(autoHideMs) {
+  guardEl.classList.add('on');
+  clearTimeout(guardHoldTimer);
+  if (autoHideMs > 0) {
+    guardHoldTimer = setTimeout(hideGuard, autoHideMs);
+  }
+}
+function hideGuard() {
+  guardEl.classList.remove('on');
+  clearTimeout(guardHoldTimer);
+}
+
+(function protect() {
+  // --- klaviatura ---
+  document.addEventListener('keyup', e => {
+    // PrintScreen
     if (e.key === 'PrintScreen' || e.keyCode === 44) {
-      showProtect(2000);
+      // Clipboard ni bo'shatish (Windows)
+      try { navigator.clipboard.writeText('\u200B'); } catch(_){}
+      showGuard(3000);
     }
-    // Windows+Shift+S, Ctrl+Shift+S kombinatsiyalar
-    if ((e.ctrlKey||e.metaKey) && e.shiftKey && (e.key==='s'||e.key==='S'||e.key==='4'||e.key==='5'||e.key==='3')) {
-      showProtect(2000);
+    // Mac: Cmd+Shift+3/4/5/6
+    if (e.metaKey && e.shiftKey && ['3','4','5','6'].includes(e.key)) showGuard(3000);
+    // Windows: Win+Shift+S
+    if (e.metaKey && e.shiftKey && (e.key==='s'||e.key==='S')) showGuard(3000);
+  });
+
+  document.addEventListener('keydown', e => {
+    // F12, Ctrl+Shift+I/J/C (DevTools)
+    if (e.key === 'F12') { e.preventDefault(); return false; }
+    if ((e.ctrlKey||e.metaKey) && e.shiftKey && 'ijcIJC'.includes(e.key)) {
+      e.preventDefault(); return false;
+    }
+    // Ctrl+P (print)
+    if ((e.ctrlKey||e.metaKey) && (e.key==='p'||e.key==='P')) {
+      e.preventDefault(); return false;
+    }
+    // Ctrl+S (save page)
+    if ((e.ctrlKey||e.metaKey) && (e.key==='s'||e.key==='S')) {
+      e.preventDefault(); return false;
     }
   });
-  // 2. Visibility o'zgarganda (screenshot tool ochilganda tab almashadi)
-  document.addEventListener('visibilitychange', function() {
-    if (document.hidden) showProtect(1500);
-    else hideProtect();
+
+  // --- sahifa yashirilganda (ASOSIY: telefon + desktop screenshot tools) ---
+  document.addEventListener('visibilitychange', () => {
+    // Telefonda quvvat+ovoz = sahifa yashiriladi
+    // Screenshot tool, task switcher, notification bar — bari shu eventni chaqiradi
+    if (document.hidden) {
+      showGuard(0); // 0 = faqat focus qaytganda yopiladi
+    } else {
+      // Kichik kechikish: sahifa ko'rindi, screenshot allaqachon olingan bo'lishi mumkin
+      setTimeout(hideGuard, 800);
+    }
   });
-  // 3. Window blur — boshqa oynaga o'tganda
-  window.addEventListener('blur', function() { showProtect(1000); });
-  window.addEventListener('focus', function() { hideProtect(); });
-  // 4. Kontekst menyuni o'chirish (o'ng klik)
-  document.addEventListener('contextmenu', function(e) { e.preventDefault(); });
-  // 5. DevTools klaviatura qisqartmalari
-  document.addEventListener('keydown', function(e) {
-    if (e.key==='F12' || (e.ctrlKey&&e.shiftKey&&(e.key==='I'||e.key==='J'||e.key==='C'))) {
+
+  // --- window focus (desktop) ---
+  window.addEventListener('blur',  () => showGuard(0));
+  window.addEventListener('focus', () => setTimeout(hideGuard, 600));
+
+  // --- o'ng klik ---
+  document.addEventListener('contextmenu', e => e.preventDefault());
+
+  // --- multi-touch (ikki barmoq = screenshot ba'zi telefonda) ---
+  document.addEventListener('touchstart', e => {
+    if (e.touches.length >= 2) {
       e.preventDefault();
+      showGuard(2000);
     }
-  });
+  }, {passive: false});
+
+  // --- drag ---
+  document.addEventListener('dragstart', e => e.preventDefault());
+
+  // --- CSS: print ---
+  // @media print body{display:none} yuqorida CSS da yozilgan
+
 })();
 
-function showProtect(dur) {
-  document.getElementById('protectOverlay').classList.add('show');
-  if(dur) setTimeout(hideProtect, dur);
-}
-function hideProtect() {
-  document.getElementById('protectOverlay').classList.remove('show');
-}
 
-// ── TIMER ─────────────────────────────────────────────────
-function startTimer() {
-  timerInterval = setInterval(()=>{
-    timeLeft--;
-    updateTimerDisplay();
-    if(timeLeft<=0){clearInterval(timerInterval);finishTest();}
-  },1000);
-}
-function updateTimerDisplay() {
-  const m=Math.floor(timeLeft/60), s=timeLeft%60;
-  const el=document.getElementById('timer');
-  el.textContent=String(m).padStart(2,'0')+':'+String(s).padStart(2,'0');
-  el.className='timer'+(timeLeft<60?' warning':'');
-}
+// ═══════════════════════════════════════════════════════
+// 3. CANVAS — SAVOL MATNINI RASM SIFATIDA CHIZISH
+// Bu usulda matn select, copy, screenshot-OCR dan himoyalangan
+// ═══════════════════════════════════════════════════════
+function drawCanvas(rawText) {
+  const canvas = document.getElementById('qCanvas');
+  const dpr    = Math.min(window.devicePixelRatio || 1, 3);
+  const wrapW  = canvas.parentElement.clientWidth - 44; // padding
+  const FS     = 16;   // font size px
+  const LH     = FS * 1.65;
+  const PX     = 2;    // left padding
+  const FONT   = `600 ${FS}px 'Segoe UI', Arial, sans-serif`;
+  const COLOR  = '#1a3a6b';
 
-// ── HELPERS ───────────────────────────────────────────────
-function addToken(url){return url+(url.includes('?')?'&':'?')+'token='+TOKEN;}
-function getH(){return{'Content-Type':'application/json'};}
+  // Matndagi \n larni saqlaymiz, so'zlarni wrap qilamiz
+  const ctx0 = canvas.getContext('2d');
+  ctx0.font = FONT;
 
-// HTML sanitize — faqat xavfsiz teglar qoladi
-function sanitizeHTML(html) {
-  const allowed = ['b','i','u','strong','em','br','p','code','pre','table','thead','tbody','tr','td','th','ul','ol','li','img','span','sub','sup'];
-  const div = document.createElement('div');
-  div.innerHTML = html;
-  function clean(node) {
-    if(node.nodeType===3) return; // text node
-    if(node.nodeType===1) {
-      if(!allowed.includes(node.tagName.toLowerCase())) {
-        node.replaceWith(...node.childNodes);
-        return;
-      }
-      // img uchun faqat src va alt
-      if(node.tagName==='IMG') {
-        const src=node.getAttribute('src')||'';
-        const alt=node.getAttribute('alt')||'';
-        node.setAttribute('src',src);
-        node.setAttribute('alt',alt);
-        // boshqa atributlarni olib tashlash
-        [...node.attributes].forEach(a=>{if(!['src','alt'].includes(a.name)) node.removeAttribute(a.name);});
-      } else {
-        // script, on* atributlarni o'chirish
-        [...node.attributes].forEach(a=>{if(a.name.startsWith('on')||a.name==='href') node.removeAttribute(a.name);});
-      }
+  const paragraphs = rawText.split('\n');
+  const lines = [];
+  for (const para of paragraphs) {
+    if (para.trim() === '') { lines.push(''); continue; }
+    const words = para.split(' ');
+    let cur = '';
+    for (const w of words) {
+      const test = cur ? cur + ' ' + w : w;
+      if (ctx0.measureText(test).width > wrapW - PX * 2 && cur) {
+        lines.push(cur); cur = w;
+      } else { cur = test; }
     }
-    [...node.childNodes].forEach(clean);
+    if (cur) lines.push(cur);
   }
-  [...div.childNodes].forEach(clean);
-  return div.innerHTML;
+
+  const H = lines.length * LH + 12;
+  canvas.width  = wrapW * dpr;
+  canvas.height = H * dpr;
+  canvas.style.width  = wrapW + 'px';
+  canvas.style.height = H + 'px';
+
+  const ctx = canvas.getContext('2d');
+  ctx.scale(dpr, dpr);
+  ctx.clearRect(0, 0, wrapW, H);
+  ctx.font = FONT;
+  ctx.fillStyle = COLOR;
+  ctx.textBaseline = 'top';
+
+  lines.forEach((line, i) => {
+    ctx.fillText(line, PX, 6 + i * LH);
+  });
 }
 
-// ── QUESTION LOADER ───────────────────────────────────────
-async function loadQuestion(idx) {
-  answered=false;
-  document.getElementById('btn-next').disabled=true;
-  document.getElementById('feedback').style.display='none';
-  document.getElementById('q-text').innerHTML='<span style="color:#aaa">Yuklanmoqda...</span>';
-  document.getElementById('options').innerHTML='';
 
-  const res = await fetch(addToken('/get_question/'+idx));
+// ═══════════════════════════════════════════════════════
+// 4. TIMER
+// ═══════════════════════════════════════════════════════
+function startTimer() {
+  clockId = setInterval(() => {
+    timeLeft--;
+    updateClock();
+    if (timeLeft <= 0) { clearInterval(clockId); finishTest(); }
+  }, 1000);
+}
+function updateClock() {
+  const m = Math.floor(timeLeft / 60), s = timeLeft % 60;
+  const el = document.getElementById('timer');
+  el.textContent = String(m).padStart(2,'0') + ':' + String(s).padStart(2,'0');
+  el.className = 'timer' + (timeLeft < 60 ? ' warn' : '');
+}
+function apiUrl(p){ return p + (p.includes('?') ? '&' : '?') + 'token=' + TOKEN; }
+function hdr()   { return {'Content-Type':'application/json'}; }
+
+
+// ═══════════════════════════════════════════════════════
+// 5. SAVOL YUKLASH
+// ═══════════════════════════════════════════════════════
+async function loadQ(i) {
+  answered = false;
+  document.getElementById('btnNext').disabled = true;
+  document.getElementById('feedback').style.display = 'none';
+  document.getElementById('options').innerHTML = '';
+  drawCanvas('Yuklanmoqda...');
+
+  const res  = await fetch(apiUrl('/get_question/' + i));
   const data = await res.json();
-  if(data.timeout||data.done){finishTest();return;}
+  if (data.timeout || data.done) { finishTest(); return; }
 
-  document.getElementById('q-num').textContent='Savol '+(idx+1)+' / '+totalQ;
-  // HTML savollarni render qilish
-  document.getElementById('q-text').innerHTML = sanitizeHTML(data.question);
-  document.getElementById('progress').style.width=(idx/totalQ*100)+'%';
+  document.getElementById('qNum').textContent = 'SAVOL ' + (i+1) + ' / ' + total;
+  document.getElementById('progress').style.width = (i / total * 100) + '%';
 
-  const opts=document.getElementById('options');
-  data.options.forEach((opt,i)=>{
-    const div=document.createElement('div');
-    div.className='option';
-    const letter=document.createElement('div');
-    letter.className='opt-letter';
-    letter.textContent=LETTERS[i];
-    const text=document.createElement('div');
-    text.className='opt-text';
-    text.innerHTML=sanitizeHTML(opt); // HTML javoblarni ham render qilish
-    div.appendChild(letter);
-    div.appendChild(text);
-    div.onclick=()=>selectAnswer(opt,div,idx);
-    opts.appendChild(div);
+  // Savol matnini canvas ga chizamiz
+  // escapeText: HTML teglar oddiy matn sifatida ko'rinadi
+  drawCanvas(escapeText(data.question));
+
+  // Javob variantlari
+  const optsEl = document.getElementById('options');
+  data.options.forEach((opt, j) => {
+    const div = document.createElement('div');
+    div.className = 'option';
+    div.dataset.val = opt;
+
+    const ltr = document.createElement('div');
+    ltr.className = 'opt-ltr';
+    ltr.textContent = LETTERS[j];
+
+    const txt = document.createElement('div');
+    txt.className = 'opt-txt';
+    // textContent = HTML teglar MATN sifatida ko'rsatiladi
+    // innerHTML ishlatilmaydi!
+    txt.textContent = escapeText(opt);
+
+    div.appendChild(ltr);
+    div.appendChild(txt);
+    div.onclick = () => selectAns(opt, div);
+    optsEl.appendChild(div);
   });
 
-  const btn=document.getElementById('btn-next');
-  btn.textContent=idx>=totalQ-1?'Yakunlash ✓':'Keyingisi ›';
-  btn.className='btn '+(idx>=totalQ-1?'btn-finish':'btn-next');
+  const btn = document.getElementById('btnNext');
+  btn.textContent = (i >= total - 1) ? 'Yakunlash ✓' : 'Keyingisi ›';
+  btn.className   = 'btn ' + (i >= total - 1 ? 'btn-fin' : 'btn-next');
 }
 
-async function selectAnswer(answer,el,idx) {
-  if(answered) return;
-  answered=true;
-  const res=await fetch(addToken('/submit_answer'),{method:'POST',headers:getH(),body:JSON.stringify({index:idx,answer})});
-  const data=await res.json();
-  document.querySelectorAll('.option').forEach(o=>{
-    o.classList.add('disabled');
-    const t=o.querySelector('.opt-text');
-    if(t && t.innerHTML && sanitizeHTML(data.correct_answer)===t.innerHTML) o.classList.add('correct');
+
+// ═══════════════════════════════════════════════════════
+// 6. JAVOB TANLASH
+// ═══════════════════════════════════════════════════════
+async function selectAns(answer, el) {
+  if (answered) return;
+  answered = true;
+
+  const res  = await fetch(apiUrl('/submit_answer'), {
+    method: 'POST', headers: hdr(),
+    body: JSON.stringify({index: idx, answer})
   });
-  if(!data.correct){
-    el.classList.add('wrong');
-    const fb=document.getElementById('feedback');
-    fb.className='feedback wrong';
-    fb.innerHTML='❌ Noto\'g\'ri! To\'g\'ri javob: <span style="font-weight:700">'+sanitizeHTML(data.correct_answer)+'</span>';
-    fb.style.display='block';
+  const data = await res.json();
+
+  document.querySelectorAll('.option').forEach(o => {
+    o.classList.add('dis');
+    if (o.dataset.val === data.correct_answer) o.classList.add('ok');
+  });
+
+  const fb = document.getElementById('feedback');
+  if (!data.correct) {
+    el.classList.add('err');
+    fb.className = 'feedback err';
+    // textContent — HTML teglar ko'rsatiladi
+    fb.textContent = "❌ Noto'g'ri! To'g'ri javob: " + escapeText(data.correct_answer);
   } else {
-    el.classList.add('selected');
-    const fb=document.getElementById('feedback');
-    fb.className='feedback correct';
-    fb.textContent='✅ To\'g\'ri javob!';
-    fb.style.display='block';
+    el.classList.add('sel');
+    fb.className = 'feedback ok';
+    fb.textContent = "✅ To'g'ri javob!";
   }
-  document.getElementById('btn-next').disabled=false;
+  fb.style.display = 'block';
+  document.getElementById('btnNext').disabled = false;
 }
 
-function nextQuestion() {
-  if(!answered&&currentIdx<totalQ){
-    if(!confirm('Bu savolni javobsiz o\'tkazmoqchimisiz?')) return;
+
+// ═══════════════════════════════════════════════════════
+// 7. KEYINGI SAVOL
+// ═══════════════════════════════════════════════════════
+function nextQ() {
+  if (!answered) {
+    if (!confirm("Bu savolni javobsiz o'tkazmoqchimisiz?")) return;
   }
-  currentIdx++;
-  if(currentIdx>=totalQ){finishTest();return;}
-  loadQuestion(currentIdx);
+  idx++;
+  if (idx >= total) { finishTest(); return; }
+  loadQ(idx);
 }
 
+
+// ═══════════════════════════════════════════════════════
+// 8. YAKUNLASH
+// ═══════════════════════════════════════════════════════
 async function finishTest() {
-  if(finished) return;
-  finished=true;
-  clearInterval(timerInterval);
-  const res=await fetch(addToken('/finish_test'),{method:'POST',headers:getH()});
-  const data=await res.json();
-  document.getElementById('q-card').style.display='none';
-  document.getElementById('progress').style.width='100%';
-  const rc=document.getElementById('result-card');
-  rc.style.display='block';
-  const pct=data.percentage;
-  const pctEl=document.getElementById('r-pct');
-  pctEl.textContent=pct+'%';
-  let grade,icon;
-  if(pct>=85){grade="A'lo (Excellent)";icon="🏆";pctEl.className='result-pct excellent';}
-  else if(pct>=70){grade="Yaxshi (Good)";icon="🌟";pctEl.className='result-pct good';}
-  else if(pct>=55){grade="Qoniqarli (Satisfactory)";icon="👍";pctEl.className='result-pct good';}
-  else{grade="Qoniqarsiz (Unsatisfactory)";icon="📚";pctEl.className='result-pct poor';}
-  document.getElementById('r-icon').textContent=icon;
-  document.getElementById('r-grade').textContent=grade;
-  document.getElementById('r-total').textContent=data.total;
-  document.getElementById('r-correct').textContent=data.correct;
-  document.getElementById('r-wrong').textContent=data.wrong;
-  document.getElementById('r-info').textContent='👤 '+data.fio+' | Guruh: '+data.group+' | 📂 '+data.category+' | 📅 '+data.date;
+  if (finished) return;
+  finished = true;
+  clearInterval(clockId);
+  hideGuard();
+
+  const res  = await fetch(apiUrl('/finish_test'), {method:'POST', headers:hdr()});
+  const data = await res.json();
+
+  document.getElementById('qCard').style.display      = 'none';
+  document.getElementById('progress').style.width     = '100%';
+  document.getElementById('resultCard').style.display = 'block';
+
+  const pct = data.percentage;
+  const pEl = document.getElementById('rPct');
+  pEl.textContent = pct + '%';
+
+  let grade, icon;
+  if      (pct >= 85) { grade="A'lo (Excellent)";         icon="🏆"; pEl.className='r-pct ex'; }
+  else if (pct >= 70) { grade="Yaxshi (Good)";            icon="🌟"; pEl.className='r-pct gd'; }
+  else if (pct >= 55) { grade="Qoniqarli (Satisfactory)"; icon="👍"; pEl.className='r-pct gd'; }
+  else                { grade="Qoniqarsiz";                icon="📚"; pEl.className='r-pct bd'; }
+
+  document.getElementById('rIcon').textContent    = icon;
+  document.getElementById('rGrade').textContent   = grade;
+  document.getElementById('rTotal').textContent   = data.total;
+  document.getElementById('rCorrect').textContent = data.correct;
+  document.getElementById('rWrong').textContent   = data.wrong;
+  document.getElementById('rInfo').textContent    =
+    '👤 ' + data.fio + ' | Guruh: ' + data.group +
+    ' | 📂 ' + data.category + ' | 📅 ' + data.date;
 }
 
-// Init
-updateTimerDisplay();
+// ── Ishga tushirish ──────────────────────────────────
+updateClock();
 startTimer();
-loadQuestion(0);
+loadQ(0);
+
+// Ekran o'lchami o'zgarganda savolni qayta chiz
+window.addEventListener('resize', () => { if (!finished) drawCanvas(document.getElementById('qNum')._lastText || ''); });
 </script>
 </body>
 </html>
