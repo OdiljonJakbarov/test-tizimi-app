@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Profil — {{ teacher.name }}</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Segoe UI',Arial,sans-serif;background:#eef1f7;min-height:100vh;}
+.hdr{background:linear-gradient(135deg,#0a1628,#1a3a6b);color:white;padding:0 28px;height:56px;display:flex;align-items:center;justify-content:space-between;}
+.hdr h1{font-size:16px;font-weight:700;}
+.hdr-btn{color:rgba(255,255,255,.8);text-decoration:none;font-size:13px;background:rgba(255,255,255,.12);padding:7px 14px;border-radius:7px;}
+.page{max-width:1000px;margin:24px auto;padding:0 16px;}
+.top-card{background:white;border-radius:14px;padding:24px;box-shadow:0 2px 10px rgba(0,0,0,.07);margin-bottom:18px;display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:16px;}
+.teacher-info h2{font-size:20px;font-weight:800;color:#1a3a6b;}
+.teacher-info p{font-size:14px;color:#777;margin-top:4px;}
+.teacher-meta{display:flex;gap:20px;flex-wrap:wrap;margin-top:12px;}
+.meta-item{font-size:13px;color:#555;}
+.meta-item strong{color:#1a3a6b;}
+.stat-row{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:18px;}
+.stat{background:white;border-radius:12px;padding:16px;text-align:center;box-shadow:0 1px 5px rgba(0,0,0,.07);}
+.stat .n{font-size:28px;font-weight:800;color:#1a3a6b;}
+.stat .l{font-size:11px;color:#999;margin-top:3px;}
+.card{background:white;border-radius:14px;padding:22px;box-shadow:0 2px 10px rgba(0,0,0,.07);margin-bottom:18px;}
+.card h2{font-size:15px;color:#1a3a6b;font-weight:700;margin-bottom:14px;padding-bottom:10px;border-bottom:2px solid #f0f4f8;}
+table{width:100%;border-collapse:collapse;font-size:13px;}
+th{background:#1a3a6b;color:white;padding:10px 12px;text-align:left;}
+td{padding:10px 12px;border-bottom:1px solid #f0f0f0;}
+tr:hover td{background:#f8f9ff;}
+.badge{display:inline-block;padding:3px 8px;border-radius:8px;font-size:11px;font-weight:700;}
+.badge-cat{background:#e8f0fe;color:#2563b0;}
+.btn{padding:8px 16px;border:none;border-radius:7px;font-size:13px;font-weight:600;cursor:pointer;}
+.btn-blue{background:linear-gradient(135deg,#1a3a6b,#2563b0);color:white;}
+.btn-green{background:#27ae60;color:white;}
+.btn-red{background:#e74c3c;color:white;}
+.btn:hover{opacity:.85;}
+.pct-good{color:#27ae60;font-weight:700;}
+.pct-mid{color:#f39c12;font-weight:700;}
+.pct-low{color:#e74c3c;font-weight:700;}
+.tbl-wrap{overflow-x:auto;}
+</style>
+</head>
+<body>
+<div class="hdr">
+  <h1>👁 Foydalanuvchi Profili</h1>
+  <a href="/admin" class="hdr-btn">← Administrator paneli</a>
+</div>
+
+<div class="page">
+  <!-- PROFIL -->
+  <div class="top-card">
+    <div class="teacher-info">
+      <h2>{{ teacher.name }}</h2>
+      <p>@{{ teacher.username }} {% if teacher.email %}· {{ teacher.email }}{% endif %}</p>
+      <div class="teacher-meta">
+        <div class="meta-item">📅 Ro'yxatdan: <strong>{{ (teacher.created_at or '')[:10] }}</strong></div>
+        <div class="meta-item">⏱ Vaqt limiti: <strong>{{ teacher.time_limit or 30 }} daqiqa</strong></div>
+        <div class="meta-item">📋 Savollar: <strong>{{ teacher.question_count or 10 }} ta</strong></div>
+        <div class="meta-item">Holat: <strong style="color:{{ '#27ae60' if teacher.is_active else '#e74c3c' }}">{{ 'Faol ✅' if teacher.is_active else 'Bloklangan ❌' }}</strong></div>
+      </div>
+    </div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;">
+      <button class="btn btn-green" onclick="exportResults()">📥 Natijalarni yuklab olish</button>
+      <a href="/admin" class="btn btn-blue">← Orqaga</a>
+    </div>
+  </div>
+
+  <!-- STATISTIKA -->
+  {% set done = results|length %}
+  {% set passed = results|selectattr('percentage','ge',55)|list|length %}
+  {% set failed = done - passed %}
+  <div class="stat-row">
+    <div class="stat"><div class="n">{{ tests|length }}</div><div class="l">Test fayllari</div></div>
+    <div class="stat"><div class="n" style="color:#7b2ff7;">{{ done }}</div><div class="l">Jami topshirishlar</div></div>
+    <div class="stat"><div class="n" style="color:#27ae60;">{{ passed }}</div><div class="l">O'tganlar (≥55%)</div></div>
+    <div class="stat"><div class="n" style="color:#e74c3c;">{{ failed }}</div><div class="l">O'tmaganlar</div></div>
+  </div>
+
+  <!-- TEST FAYLLARI -->
+  <div class="card">
+    <h2>📁 Test Fayllari ({{ tests|length }} ta)</h2>
+    {% if tests %}
+    <div style="display:flex;flex-wrap:wrap;gap:8px;">
+      {% for t in tests %}
+      <span class="badge badge-cat">📄 {{ t }}</span>
+      {% endfor %}
+    </div>
+    {% else %}
+    <p style="color:#aaa;">Hozircha test fayllari yo'q</p>
+    {% endif %}
+  </div>
+
+  <!-- NATIJALAR -->
+  <div class="card">
+    <h2>📊 Talabalar Natijalari ({{ results|length }} ta)</h2>
+    {% if results %}
+    <div class="tbl-wrap">
+    <table>
+      <thead><tr><th>#</th><th>F.I.O.</th><th>Guruh</th><th>Test turi</th><th>Jami</th><th>To'g'ri</th><th>Xato</th><th>Foiz</th><th>Sana</th></tr></thead>
+      <tbody>
+        {% for r in results %}
+        <tr>
+          <td>{{ loop.index }}</td>
+          <td><strong>{{ r.fio }}</strong></td>
+          <td>{{ r.group }}</td>
+          <td><span class="badge badge-cat">{{ r.category }}</span></td>
+          <td>{{ r.total }}</td>
+          <td style="color:#27ae60;font-weight:700;">{{ r.correct }}</td>
+          <td style="color:#e74c3c;">{{ r.wrong }}</td>
+          <td class="{{ 'pct-good' if r.percentage>=85 else ('pct-mid' if r.percentage>=55 else 'pct-low') }}">{{ r.percentage }}%</td>
+          <td style="font-size:12px;color:#aaa;">{{ r.date }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    </div>
+    {% else %}
+    <p style="color:#aaa;text-align:center;padding:20px;">Hozircha natijalar yo'q</p>
+    {% endif %}
+  </div>
+</div>
+
+<script>
+async function exportResults() {
+  const res = await fetch('/teacher/export_results_by_id/{{ teacher.id }}', {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({category:'all'})});
+  if(!res.ok){const d=await res.json();alert('❌ '+d.error);return;}
+  const blob=await res.blob();
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a'); a.href=url; a.download='natijalar_{{ teacher.username }}.xlsx'; a.click();
+}
+</script>
+</body>
+</html>

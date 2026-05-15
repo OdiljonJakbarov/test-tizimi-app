@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Administrator — Kirish</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Segoe UI',Arial,sans-serif;background:linear-gradient(135deg,#0a1628 0%,#1a3a6b 100%);min-height:100vh;display:flex;align-items:center;justify-content:center;}
+.card{background:white;border-radius:18px;padding:44px 38px;width:100%;max-width:400px;box-shadow:0 28px 70px rgba(0,0,0,.45);}
+.logo{text-align:center;margin-bottom:30px;}
+.shield{width:68px;height:68px;background:linear-gradient(135deg,#1a3a6b,#2563b0);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:30px;margin:0 auto 14px;}
+.logo h1{font-size:21px;color:#1a3a6b;font-weight:800;}
+.logo p{color:#888;font-size:13px;margin-top:4px;}
+.form-group{margin-bottom:18px;}
+label{display:block;font-size:13px;font-weight:700;color:#444;margin-bottom:6px;letter-spacing:.3px;}
+.inp-wrap{position:relative;}
+input[type=password],input[type=text]{width:100%;padding:12px 40px 12px 14px;border:2px solid #e0e8f0;border-radius:10px;font-size:14px;outline:none;transition:border-color .2s;}
+input:focus{border-color:#1a3a6b;}
+.eye{position:absolute;right:12px;top:50%;transform:translateY(-50%);cursor:pointer;font-size:17px;color:#aaa;user-select:none;}
+.btn{width:100%;padding:13px;background:linear-gradient(135deg,#1a3a6b,#2563b0);color:white;border:none;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer;margin-top:4px;letter-spacing:.5px;}
+.btn:hover{opacity:.9;}
+.error{background:#fdf2f2;color:#c0392b;border:1px solid #f5b7b1;border-radius:8px;padding:10px 14px;font-size:13px;margin-bottom:16px;text-align:center;}
+.back{text-align:center;margin-top:16px;}
+.back a{font-size:13px;color:#888;text-decoration:none;}
+.back a:hover{color:#1a3a6b;}
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="logo">
+    <div class="shield">🛡️</div>
+    <h1>Administrator Paneli</h1>
+    <p>Faqat administrator uchun</p>
+  </div>
+  {% if error %}
+  <div class="error">❌ {{ error }}</div>
+  {% endif %}
+  <form method="POST">
+    <div class="form-group">
+      <label>Administrator Paroli</label>
+      <div class="inp-wrap">
+        <input type="password" name="password" id="pw" placeholder="Parolni kiriting..." required autofocus/>
+        <span class="eye" onclick="togglePw()">👁</span>
+      </div>
+    </div>
+    <button type="submit" class="btn">🔐 Kirish</button>
+  </form>
+  <div class="back"><a href="/">← Bosh sahifaga qaytish</a></div>
+</div>
+<script>
+function togglePw(){
+  const inp=document.getElementById('pw');
+  inp.type = inp.type==='password' ? 'text' : 'password';
+}
+</script>
+</body>
+</html>

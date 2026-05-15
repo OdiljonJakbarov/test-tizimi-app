@@ -2,178 +2,316 @@
 <html lang="uz">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>Administrator Paneli</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0;}
-body{font-family:'Segoe UI',Arial,sans-serif;background:#f0f2f5;min-height:100vh;}
-.header{background:linear-gradient(135deg,#1a3a6b,#2563b0);color:white;padding:16px 28px;display:flex;justify-content:space-between;align-items:center;}
-.header h1{font-size:20px;font-weight:700;}
-.header a{color:rgba(255,255,255,.85);text-decoration:none;font-size:13px;background:rgba(255,255,255,.15);padding:7px 14px;border-radius:6px;}
-.main{max-width:960px;margin:30px auto;padding:0 16px;}
-.card{background:white;border-radius:14px;padding:30px;box-shadow:0 2px 14px rgba(0,0,0,.08);margin-bottom:20px;}
-.card h2{font-size:17px;color:#1a3a6b;margin-bottom:20px;padding-bottom:12px;border-bottom:2px solid #f0f4ff;}
-.form-group{margin-bottom:16px;}
-label{display:block;font-size:13px;font-weight:600;color:#444;margin-bottom:5px;}
-input{width:100%;padding:10px 14px;border:2px solid #e0e0e0;border-radius:8px;font-size:14px;outline:none;transition:border-color .2s;}
-input:focus{border-color:#2563b0;}
-.btn{padding:10px 22px;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;transition:opacity .2s;}
-.btn-primary{background:linear-gradient(135deg,#1a3a6b,#2563b0);color:white;}
-.btn-danger{background:#e74c3c;color:white;}
-.btn-warn{background:#f39c12;color:white;}
-.btn-ok{background:#27ae60;color:white;}
-.btn:hover{opacity:.88;}
-.alert{padding:11px 15px;border-radius:8px;margin-top:12px;font-size:13px;display:none;}
-.alert-success{background:#eafaf1;color:#27ae60;border:1px solid #a9dfbf;}
-.alert-error{background:#fdf2f2;color:#e74c3c;border:1px solid #f5b7b1;}
-.form-row{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
-/* TEACHERS TABLE */
-.t-table{width:100%;border-collapse:collapse;font-size:14px;}
-.t-table th{background:#1a3a6b;color:white;padding:11px 14px;text-align:left;font-weight:600;}
-.t-table td{padding:11px 14px;border-bottom:1px solid #f0f0f0;vertical-align:middle;}
-.t-table tr:hover td{background:#f8f9ff;}
-.badge-active{background:#eafaf1;color:#27ae60;padding:3px 10px;border-radius:12px;font-size:12px;font-weight:700;}
-.badge-blocked{background:#fdf2f2;color:#e74c3c;padding:3px 10px;border-radius:12px;font-size:12px;font-weight:700;}
-.actions{display:flex;gap:6px;}
-.actions .btn{padding:5px 12px;font-size:12px;}
-.stat-row{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:24px;}
-.stat{background:#f0f4ff;border-radius:10px;padding:18px;text-align:center;}
-.stat .num{font-size:32px;font-weight:800;color:#1a3a6b;}
-.stat .lbl{font-size:12px;color:#888;margin-top:4px;}
-.link-tip{font-size:13px;color:#666;margin-top:16px;background:#f8f9fa;padding:12px;border-radius:8px;}
-.link-tip a{color:#2563b0;font-weight:600;}
-code{background:#f0f4ff;padding:2px 7px;border-radius:4px;font-size:12px;color:#1a3a6b;}
+body{font-family:'Segoe UI',Arial,sans-serif;background:#eef1f7;min-height:100vh;}
+.hdr{background:linear-gradient(135deg,#0a1628,#1a3a6b);color:white;padding:0 28px;height:58px;display:flex;align-items:center;justify-content:space-between;}
+.hdr h1{font-size:17px;font-weight:700;}
+.hdr-right{display:flex;gap:8px;}
+.hdr-btn{color:rgba(255,255,255,.8);text-decoration:none;font-size:13px;background:rgba(255,255,255,.12);padding:7px 14px;border-radius:7px;border:none;cursor:pointer;}
+.hdr-btn:hover{background:rgba(255,255,255,.22);}
+.page{max-width:1200px;margin:24px auto;padding:0 16px;}
+.stat-row{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px;}
+.stat{background:white;border-radius:12px;padding:16px;text-align:center;box-shadow:0 1px 6px rgba(0,0,0,.07);}
+.stat .n{font-size:30px;font-weight:800;color:#1a3a6b;}
+.stat .l{font-size:11px;color:#999;margin-top:3px;}
+.tabs{display:flex;gap:6px;margin-bottom:20px;}
+.tab{padding:9px 20px;border-radius:8px;border:none;cursor:pointer;font-size:14px;font-weight:600;background:white;color:#555;box-shadow:0 1px 4px rgba(0,0,0,.08);}
+.tab.active{background:linear-gradient(135deg,#1a3a6b,#2563b0);color:white;}
+.panel{display:none;}.panel.active{display:block;}
+.card{background:white;border-radius:14px;padding:24px;box-shadow:0 2px 10px rgba(0,0,0,.07);margin-bottom:18px;}
+.card-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;padding-bottom:10px;border-bottom:2px solid #f0f4f8;}
+.card-head h2{font-size:15px;color:#1a3a6b;font-weight:700;}
+.tbl-wrap{overflow-x:auto;}
+table{width:100%;border-collapse:collapse;font-size:13px;min-width:650px;}
+th{background:#1a3a6b;color:white;padding:10px 12px;text-align:left;font-weight:600;}
+td{padding:10px 12px;border-bottom:1px solid #f0f0f0;vertical-align:middle;}
+tr:hover td{background:#f8f9ff;}
+.badge{display:inline-block;padding:3px 9px;border-radius:10px;font-size:11px;font-weight:700;}
+.badge-on{background:#eafaf1;color:#27ae60;}
+.badge-off{background:#fdf2f2;color:#e74c3c;}
+.act-btns{display:flex;gap:4px;flex-wrap:wrap;}
+.btn{padding:7px 14px;border:none;border-radius:7px;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap;}
+.btn:hover{opacity:.85;}
+.btn-blue{background:linear-gradient(135deg,#1a3a6b,#2563b0);color:white;}
+.btn-green{background:#27ae60;color:white;}
+.btn-orange{background:#f39c12;color:white;}
+.btn-red{background:#e74c3c;color:white;}
+.btn-gray{background:#95a5a6;color:white;}
+.btn-lg{padding:10px 20px;font-size:14px;}
+.form-group{margin-bottom:13px;}
+label{display:block;font-size:13px;font-weight:600;color:#444;margin-bottom:4px;}
+input{width:100%;padding:10px 12px;border:2px solid #e0e8f0;border-radius:8px;font-size:13px;outline:none;transition:border-color .2s;}
+input:focus{border-color:#1a3a6b;}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.hint{font-size:11px;color:#bbb;margin-top:3px;}
+.modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:9999;align-items:center;justify-content:center;padding:16px;}
+.modal-bg.open{display:flex;}
+.modal{background:white;border-radius:16px;padding:28px;width:100%;max-width:480px;max-height:90vh;overflow-y:auto;}
+.modal h3{font-size:16px;font-weight:700;color:#1a3a6b;margin-bottom:18px;}
+.modal-foot{display:flex;gap:10px;justify-content:flex-end;margin-top:18px;}
+.alert{padding:10px 13px;border-radius:8px;font-size:13px;display:none;margin-top:10px;}
+.alert-ok{background:#eafaf1;color:#27ae60;border:1px solid #a9dfbf;}
+.alert-err{background:#fdf2f2;color:#e74c3c;border:1px solid #f5b7b1;}
+.pw-card{background:linear-gradient(135deg,#0a1628,#1a3a6b);border-radius:14px;padding:26px;color:white;margin-bottom:18px;}
+.pw-card h2{font-size:15px;margin-bottom:16px;opacity:.9;}
+.pw-card label{color:rgba(255,255,255,.7);font-size:12px;}
+.pw-card input{background:rgba(255,255,255,.12);border:1.5px solid rgba(255,255,255,.25);color:white;font-size:13px;}
+.pw-card input::placeholder{color:rgba(255,255,255,.35);}
+.pw-card input:focus{border-color:rgba(255,255,255,.6);}
+.pct-good{color:#27ae60;font-weight:700;}
+.pct-mid{color:#f39c12;font-weight:700;}
+.pct-low{color:#e74c3c;font-weight:700;}
+code{background:#f0f4ff;padding:2px 5px;border-radius:4px;font-size:11px;color:#1a3a6b;}
 </style>
 </head>
 <body>
-<div class="header">
-  <h1>⚙️ Administrator Paneli</h1>
-  <a href="/">← Bosh sahifa</a>
+<div class="hdr">
+  <h1>🛡️ Administrator Paneli</h1>
+  <div class="hdr-right">
+    <a href="/" class="hdr-btn">🏠 Bosh sahifa</a>
+    <a href="/admin/logout" class="hdr-btn">🚪 Chiqish</a>
+  </div>
 </div>
 
-<div class="main">
-
-  <!-- STATISTIKA -->
+<div class="page">
   <div class="stat-row">
-    <div class="stat">
-      <div class="num">{{ teachers|length }}</div>
-      <div class="lbl">Jami o'qituvchilar</div>
-    </div>
-    <div class="stat">
-      <div class="num" style="color:#27ae60;">{{ teachers|selectattr('is_active','eq',1)|list|length }}</div>
-      <div class="lbl">Faol</div>
-    </div>
-    <div class="stat">
-      <div class="num" style="color:#e74c3c;">{{ teachers|selectattr('is_active','eq',0)|list|length }}</div>
-      <div class="lbl">Bloklangan</div>
-    </div>
+    <div class="stat"><div class="n">{{ stats|length }}</div><div class="l">Jami foydalanuvchilar</div></div>
+    <div class="stat"><div class="n" style="color:#27ae60;">{{ stats|selectattr('teacher.is_active','eq',1)|list|length }}</div><div class="l">Faol</div></div>
+    <div class="stat"><div class="n" style="color:#2563b0;">{{ stats|sum(attribute='tests_count') }}</div><div class="l">Jami test fayllar</div></div>
+    <div class="stat"><div class="n" style="color:#7b2ff7;">{{ stats|sum(attribute='done') }}</div><div class="l">Jami topshirishlar</div></div>
   </div>
 
-  <!-- PAROL O'ZGARTIRISH -->
-  <div class="card">
-    <h2>🔑 Administrator Paroli</h2>
-    <div class="form-row">
-      <div class="form-group">
-        <label>Joriy parol</label>
-        <input type="password" id="cur-pass" placeholder="Joriy parolingiz"/>
-      </div>
-      <div class="form-group">
-        <label>Yangi parol</label>
-        <input type="password" id="new-pass" placeholder="Yangi parol (ixtiyoriy)"/>
-      </div>
-    </div>
-    <button class="btn btn-primary" onclick="saveConfig()">💾 Saqlash</button>
-    <div class="alert alert-success" id="cfg-ok">✅ Saqlandi!</div>
-    <div class="alert alert-error" id="cfg-err">❌ Parol noto'g'ri!</div>
+  <div class="tabs">
+    <button class="tab active" onclick="showTab('users')">👥 Foydalanuvchilar</button>
+    <button class="tab" onclick="showTab('report')">📊 Hisobot</button>
+    <button class="tab" onclick="showTab('password')">🔑 Parol</button>
   </div>
 
-  <!-- O'QITUVCHILAR -->
-  <div class="card">
-    <h2>👨‍🏫 O'qituvchilar Ro'yxati</h2>
-    {% if teachers %}
-    <table class="t-table">
-      <thead>
-        <tr><th>#</th><th>Ism</th><th>Login</th><th>Email</th><th>Vaqt / Savollar</th><th>Ro'yxatdan</th><th>Holat</th><th>Amallar</th></tr>
-      </thead>
-      <tbody>
-        {% for t in teachers %}
-        <tr>
-          <td>{{ loop.index }}</td>
-          <td><strong>{{ t.name }}</strong></td>
-          <td><code>{{ t.username }}</code></td>
-          <td style="color:#666;">{{ t.email or '—' }}</td>
-          <td style="text-align:center;">{{ t.time_limit or 30 }} daq / {{ t.question_count or 10 }} ta</td>
-          <td style="color:#888;font-size:13px;">{{ t.created_at[:10] if t.created_at else '—' }}</td>
-          <td>
-            {% if t.is_active %}
-            <span class="badge-active">● Faol</span>
-            {% else %}
-            <span class="badge-blocked">● Bloklangan</span>
-            {% endif %}
-          </td>
-          <td>
-            <div class="actions">
-              {% if t.is_active %}
-              <button class="btn btn-warn" onclick="toggleTeacher('{{ t.id }}', 0)">🔒 Bloklash</button>
+  <!-- FOYDALANUVCHILAR -->
+  <div id="tab-users" class="panel active">
+    <div class="card">
+      <div class="card-head">
+        <h2>👥 Foydalanuvchilar Ro'yxati</h2>
+        <button class="btn btn-green btn-lg" onclick="openAddModal()">➕ Yangi foydalanuvchi</button>
+      </div>
+      {% if stats %}
+      <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>#</th><th>Ism</th><th>Login</th><th>Email</th><th>Vaqt/Savol</th><th>Holat</th><th>Amallar</th></tr></thead>
+        <tbody>
+          {% for s in stats %}
+          <tr>
+            <td>{{ loop.index }}</td>
+            <td><strong>{{ s.teacher.name }}</strong><br><span style="font-size:11px;color:#aaa;">{{ (s.teacher.created_at or '')[:10] }}</span></td>
+            <td><code>{{ s.teacher.username }}</code></td>
+            <td style="font-size:12px;color:#666;">{{ s.teacher.email or '—' }}</td>
+            <td style="text-align:center;font-size:12px;">{{ s.teacher.time_limit or 30 }}daq / {{ s.teacher.question_count or 10 }}ta</td>
+            <td>{% if s.teacher.is_active %}<span class="badge badge-on">● Faol</span>{% else %}<span class="badge badge-off">● Bloklangan</span>{% endif %}</td>
+            <td><div class="act-btns">
+              <a href="/admin/teacher/{{ s.teacher.id }}" class="btn btn-blue">👁 Profil</a>
+              <button class="btn btn-orange" onclick='openEditModal({{ s.teacher | tojson }})'>✏️ Tahrir</button>
+              {% if s.teacher.is_active %}
+              <button class="btn btn-gray" onclick="toggleUser('{{ s.teacher.id }}',0)">🔒</button>
               {% else %}
-              <button class="btn btn-ok" onclick="toggleTeacher('{{ t.id }}', 1)">✅ Ochish</button>
+              <button class="btn btn-green" onclick="toggleUser('{{ s.teacher.id }}',1)">🔓</button>
               {% endif %}
-              <button class="btn btn-danger" onclick="deleteTeacher('{{ t.id }}', '{{ t.name }}')">🗑</button>
-            </div>
-          </td>
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
-    {% else %}
-    <p style="color:#999;text-align:center;padding:30px;">Hozircha o'qituvchilar ro'yxatdan o'tmagan</p>
-    {% endif %}
-
-    <div class="link-tip">
-      📌 O'qituvchilar quyidagi manzillar orqali kiradi:<br><br>
-      Kirish: <a href="/teacher/login" target="_blank">/teacher/login</a> &nbsp;|&nbsp;
-      Ro'yxatdan o'tish: <a href="/teacher/register" target="_blank">/teacher/register</a>
+              <button class="btn btn-red" onclick="deleteUser('{{ s.teacher.id }}','{{ s.teacher.name }}')">🗑</button>
+            </div></td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      </div>
+      {% else %}
+      <p style="color:#aaa;text-align:center;padding:28px;">Hozircha foydalanuvchilar yo'q. Yuqoridan qo'shing.</p>
+      {% endif %}
+      <div style="margin-top:14px;font-size:13px;color:#888;">
+        O'qituvchilar kirishi: <a href="/teacher/login" target="_blank" style="color:#2563b0;">/teacher/login</a> &nbsp;|&nbsp;
+        Ro'yxatdan o'tish: <a href="/teacher/register" target="_blank" style="color:#2563b0;">/teacher/register</a>
+      </div>
     </div>
   </div>
 
+  <!-- HISOBOT -->
+  <div id="tab-report" class="panel">
+    <div class="card">
+      <div class="card-head">
+        <h2>📊 Umumiy Hisobot</h2>
+        <a href="/admin/export_report" class="btn btn-green btn-lg">📥 Excel Yuklab olish</a>
+      </div>
+      <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>#</th><th>Foydalanuvchi</th><th>Fan / Test fayllari</th><th>Testlar soni</th><th>Ishlanganlar</th><th>O'tganlar (≥55%)</th><th>O'tmaganlar</th><th>O'tish %</th></tr></thead>
+        <tbody>
+          {% for s in stats %}
+          {% set pct = (s.passed / s.done * 100)|round(1) if s.done > 0 else 0 %}
+          <tr>
+            <td>{{ loop.index }}</td>
+            <td><strong>{{ s.teacher.name }}</strong><br><span style="color:#aaa;font-size:11px;">{{ s.teacher.username }}</span></td>
+            <td style="font-size:12px;color:#555;">{% for t in s.tests %}<div>📄 {{ t }}</div>{% else %}—{% endfor %}</td>
+            <td style="text-align:center;font-weight:700;">{{ s.tests_count }}</td>
+            <td style="text-align:center;font-weight:700;color:#2563b0;">{{ s.done }}</td>
+            <td style="text-align:center;font-weight:700;color:#27ae60;">{{ s.passed }}</td>
+            <td style="text-align:center;font-weight:700;color:#e74c3c;">{{ s.failed }}</td>
+            <td style="text-align:center;" class="{{ 'pct-good' if pct >= 80 else ('pct-mid' if pct >= 55 else 'pct-low') }}">
+              {% if s.done > 0 %}{{ pct }}%{% else %}—{% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- PAROL -->
+  <div id="tab-password" class="panel">
+    <div class="pw-card">
+      <h2>🔑 Administrator Parolini O'zgartirish</h2>
+      <div class="form-row">
+        <div class="form-group"><label>Joriy parol</label><input type="password" id="cur-pw" placeholder="Hozirgi parol..."/></div>
+        <div class="form-group"><label>Yangi parol (≥6 belgi)</label><input type="password" id="new-pw" placeholder="Yangi parol..."/></div>
+      </div>
+      <div class="form-group"><label>Yangi parolni takrorlang</label><input type="password" id="new-pw2" placeholder="Takrorlang..."/></div>
+      <button class="btn btn-green btn-lg" onclick="changePassword()" style="margin-top:6px;">💾 Yangilash</button>
+      <div class="alert alert-ok" id="pw-ok">✅ Parol muvaffaqiyatli yangilandi!</div>
+      <div class="alert alert-err" id="pw-err"></div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Qo'shish -->
+<div class="modal-bg" id="addModal">
+  <div class="modal">
+    <h3>➕ Yangi Foydalanuvchi</h3>
+    <div class="form-group"><label>To'liq ism *</label><input type="text" id="add-name" placeholder="Karimov Alisher"/></div>
+    <div class="form-row">
+      <div class="form-group"><label>Login *</label><input type="text" id="add-username" placeholder="alisher_k"/></div>
+      <div class="form-group"><label>Email</label><input type="email" id="add-email" placeholder="email@mail.com"/></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label>Parol *</label><input type="password" id="add-pw" placeholder="••••••"/></div>
+      <div class="form-group"><label>Parol (takror) *</label><input type="password" id="add-pw2" placeholder="••••••"/></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label>Vaqt limiti (daqiqa)</label><input type="number" id="add-tl" value="30" min="1" max="300"/></div>
+      <div class="form-group"><label>Savollar soni</label><input type="number" id="add-qc" value="10" min="1" max="200"/></div>
+    </div>
+    <div class="alert alert-err" id="add-err"></div>
+    <div class="modal-foot">
+      <button class="btn btn-gray" onclick="closeModal('addModal')">Bekor</button>
+      <button class="btn btn-green" onclick="addUser()">✅ Qo'shish</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Tahrirlash -->
+<div class="modal-bg" id="editModal">
+  <div class="modal">
+    <h3>✏️ Foydalanuvchini Tahrirlash</h3>
+    <input type="hidden" id="edit-id"/>
+    <div class="form-group"><label>To'liq ism *</label><input type="text" id="edit-name"/></div>
+    <div class="form-row">
+      <div class="form-group"><label>Login *</label><input type="text" id="edit-username"/></div>
+      <div class="form-group"><label>Email</label><input type="email" id="edit-email"/></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label>Vaqt limiti (daqiqa)</label><input type="number" id="edit-tl" min="1" max="300"/></div>
+      <div class="form-group"><label>Savollar soni</label><input type="number" id="edit-qc" min="1" max="200"/></div>
+    </div>
+    <div class="form-group"><label>Yangi parol (bo'sh = o'zgarmaydi)</label><input type="password" id="edit-pw" placeholder="Ixtiyoriy..."/><div class="hint">Bo'sh qoldirsa parol o'zgarmaydi</div></div>
+    <div class="alert alert-err" id="edit-err"></div>
+    <div class="modal-foot">
+      <button class="btn btn-gray" onclick="closeModal('editModal')">Bekor</button>
+      <button class="btn btn-blue" onclick="editUser()">💾 Saqlash</button>
+    </div>
+  </div>
 </div>
 
 <script>
-function getAdminPass() {
-  const p = document.getElementById('cur-pass').value;
-  if(!p){ alert('Avval joriy parolni kiriting!'); return null; }
-  return p;
+function showTab(n){
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('tab-'+n).classList.add('active');
+  event.target.classList.add('active');
 }
-function showAlert(id,dur=3000){
-  const el=document.getElementById(id); el.style.display='block';
-  setTimeout(()=>el.style.display='none',dur);
-}
+function openModal(id){document.getElementById(id).classList.add('open');}
+function closeModal(id){document.getElementById(id).classList.remove('open');}
+document.querySelectorAll('.modal-bg').forEach(m=>m.addEventListener('click',e=>{if(e.target===m)m.classList.remove('open');}));
+function showAlert(id,msg,dur=4000){const el=document.getElementById(id);el.textContent=msg;el.style.display='block';setTimeout(()=>el.style.display='none',dur);}
 
-async function saveConfig() {
-  const p=document.getElementById('cur-pass').value;
-  const np=document.getElementById('new-pass').value;
-  if(!p){alert('Parolni kiriting!');return;}
-  const res=await fetch('/admin/save_config',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({password:p,new_password:np})});
-  const r=await res.json();
-  if(r.error) showAlert('cfg-err');
-  else showAlert('cfg-ok');
+function openAddModal(){
+  ['add-name','add-username','add-email','add-pw','add-pw2'].forEach(i=>document.getElementById(i).value='');
+  document.getElementById('add-tl').value=30; document.getElementById('add-qc').value=10;
+  document.getElementById('add-err').style.display='none';
+  openModal('addModal');
 }
-
-async function toggleTeacher(id, active) {
-  const pass=prompt('Administrator parolini kiriting:');
-  if(!pass) return;
-  const res=await fetch('/admin/toggle_teacher',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id,active,password:pass})});
-  const r=await res.json();
-  if(r.error){alert('❌ '+r.error);}else{location.reload();}
+function openEditModal(t){
+  document.getElementById('edit-id').value=t.id;
+  document.getElementById('edit-name').value=t.name;
+  document.getElementById('edit-username').value=t.username;
+  document.getElementById('edit-email').value=t.email||'';
+  document.getElementById('edit-tl').value=t.time_limit||30;
+  document.getElementById('edit-qc').value=t.question_count||10;
+  document.getElementById('edit-pw').value='';
+  document.getElementById('edit-err').style.display='none';
+  openModal('editModal');
 }
-
-async function deleteTeacher(id, name) {
-  const pass=prompt('Administrator parolini kiriting:');
-  if(!pass) return;
-  if(!confirm(`"${name}" o'qituvchisini o'chirishni tasdiqlaysizmi?\nUning barcha test fayllari ham o'chadi!`)) return;
-  const res=await fetch('/admin/delete_teacher',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id,password:pass})});
-  const r=await res.json();
-  if(r.error){alert('❌ '+r.error);}else{location.reload();}
+async function addUser(){
+  const name=document.getElementById('add-name').value.trim();
+  const username=document.getElementById('add-username').value.trim();
+  const email=document.getElementById('add-email').value.trim();
+  const pw=document.getElementById('add-pw').value;
+  const pw2=document.getElementById('add-pw2').value;
+  const tl=document.getElementById('add-tl').value;
+  const qc=document.getElementById('add-qc').value;
+  if(!name||!username||!pw){showAlert('add-err','❌ Ism, login va parol majburiy!');return;}
+  if(pw!==pw2){showAlert('add-err','❌ Parollar mos kelmadi!');return;}
+  if(pw.length<6){showAlert('add-err','❌ Parol kamida 6 ta belgi!');return;}
+  const res=await fetch('/admin/teacher/add',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name,username,email,password:pw,time_limit:tl,question_count:qc})});
+  const d=await res.json();
+  if(d.error)showAlert('add-err','❌ '+d.error); else{closeModal('addModal');location.reload();}
+}
+async function editUser(){
+  const id=document.getElementById('edit-id').value;
+  const name=document.getElementById('edit-name').value.trim();
+  const username=document.getElementById('edit-username').value.trim();
+  const email=document.getElementById('edit-email').value.trim();
+  const pw=document.getElementById('edit-pw').value;
+  const tl=document.getElementById('edit-tl').value;
+  const qc=document.getElementById('edit-qc').value;
+  if(!name||!username){showAlert('edit-err','❌ Ism va login majburiy!');return;}
+  if(pw&&pw.length<6){showAlert('edit-err','❌ Parol kamida 6 belgi!');return;}
+  const res=await fetch('/admin/teacher/edit',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id,name,username,email,password:pw,time_limit:tl,question_count:qc})});
+  const d=await res.json();
+  if(d.error)showAlert('edit-err','❌ '+d.error); else{closeModal('editModal');location.reload();}
+}
+async function toggleUser(id,active){
+  if(!confirm(active?'Foydalanuvchini faollashtirmoqchimisiz?':'Foydalanuvchini bloklamoqchimisiz?'))return;
+  const res=await fetch('/admin/teacher/toggle',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id,active})});
+  const d=await res.json();
+  if(d.error)alert('❌ '+d.error); else location.reload();
+}
+async function deleteUser(id,name){
+  if(!confirm(`"${name}" ni o'chirishni tasdiqlaysizmi?\nBarcha test fayllari ham o'chadi!`))return;
+  const res=await fetch('/admin/teacher/delete',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id})});
+  const d=await res.json();
+  if(d.error)alert('❌ '+d.error); else location.reload();
+}
+async function changePassword(){
+  const cur=document.getElementById('cur-pw').value;
+  const nw=document.getElementById('new-pw').value;
+  const nw2=document.getElementById('new-pw2').value;
+  if(!cur){showAlert('pw-err','❌ Joriy parolni kiriting!');return;}
+  if(!nw||nw.length<6){showAlert('pw-err','❌ Yangi parol kamida 6 ta belgi!');return;}
+  if(nw!==nw2){showAlert('pw-err','❌ Yangi parollar mos kelmadi!');return;}
+  const res=await fetch('/admin/change_password',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({current_password:cur,new_password:nw})});
+  const d=await res.json();
+  if(d.error)showAlert('pw-err','❌ '+d.error);
+  else{showAlert('pw-ok','✅ Parol muvaffaqiyatli yangilandi!');document.getElementById('cur-pw').value='';document.getElementById('new-pw').value='';document.getElementById('new-pw2').value='';}
 }
 </script>
 </body>
